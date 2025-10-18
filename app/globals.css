@@ -3,10 +3,24 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+  --background: #fffbf7;
+  --foreground: #2d3748;
   --font-inter: 'Inter', sans-serif;
   --font-playfair: 'Playfair Display', serif;
+  
+  /* Elegant Pastel Color Palette */
+  --purple-soft: #b197fc;
+  --purple-light: #e5dbff;
+  --pink-soft: #ffa8c5;
+  --pink-light: #ffd6e7;
+  --blue-soft: #91c5f5;
+  --blue-light: #d4e9ff;
+  --teal-soft: #7dd3c0;
+  --teal-light: #d0f4ea;
+  --peach-soft: #ffb88c;
+  --peach-light: #ffe4d1;
+  --cream: #fff9f0;
+  --lavender: #f3f0ff;
 }
 
 body {
@@ -23,19 +37,44 @@ body {
   .font-display {
     font-family: var(--font-playfair);
   }
+  
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
 }
 
 @layer components {
   .btn-primary {
-    @apply px-8 py-4 bg-slate-900 text-white font-medium rounded-lg hover:bg-slate-800 transition-all duration-200 shadow-lg hover:shadow-xl;
+    @apply px-8 py-4 font-medium rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5;
+    background: linear-gradient(135deg, #b197fc 0%, #ffa8c5 100%);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #9775fa 0%, #ff85b3 100%);
   }
   
   .btn-secondary {
-    @apply px-6 py-3 bg-white text-slate-900 font-medium rounded-lg border-2 border-slate-200 hover:border-slate-900 transition-all duration-200;
+    @apply px-6 py-3 bg-white font-medium rounded-xl border-2 transition-all duration-300;
+    border-color: #e5dbff;
+    color: #7c3aed;
+  }
+  
+  .btn-secondary:hover {
+    background: #f3f0ff;
+    border-color: #b197fc;
   }
   
   .card {
-    @apply bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100;
+    @apply bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border hover:-translate-y-1;
+    border-color: #f3f0ff;
+  }
+  
+  .card:hover {
+    border-color: #e5dbff;
   }
 }
 
