@@ -50,13 +50,23 @@ WE NEED A MOBILE COMPATIBLE APP - ALL THE THINGS SHOULD BE SUPPORTED ON MOBILE W
   - Text input for prompt
   - Optional guided questions (name, occasion, interests, relationship)
   - Tone selector (heartfelt, funny, romantic, casual)
+  - **Image upload capability (up to 10 photos)**
+    - Drag & drop interface
+    - Preview thumbnails
+    - Image validation (size, format)
+    - Optional captions per image
 - [ ] Create AI processing pipeline:
   - Step 1: Analyze input → determine theme
   - Step 2: Decide which page components to use
   - Step 3: Generate content for each page
-  - Step 4: Return structured JSON with all data
+  - Step 4: **Integrate user-uploaded images** into appropriate pages
+  - Step 5: Return structured JSON with all data
 - [ ] Add loading states and progress indicators
 - [ ] Error handling for AI failures
+- [ ] **Image handling system**
+  - Client-side image compression
+  - Base64 encoding for initial storage
+  - Generate captions using AI if not provided
 
 ### **PHASE 3: Page Templates** (Days 6-8)
 Build 4 core page components (each with 2-3 variants):
@@ -65,22 +75,27 @@ Build 4 core page components (each with 2-3 variants):
 - [ ] **Hero/Landing Page**
   - Full-screen greeting with name
   - Animated entrance
-  - Background options (gradient, image, particles)
+  - Background options (gradient, image, **user-uploaded photo**)
+  - **Profile photo display option**
   
 - [ ] **Letter/Message Page**
   - Handwritten-style font option
   - Centered text layout
   - Background texture
+  - **Optional decorative photo border**
   
 - [ ] **Gallery Page**
-  - Photo grid layout (placeholder images or user uploads later)
+  - Photo grid layout (**uses user-uploaded images**)
   - Lightbox functionality
-  - Captions per photo
+  - **AI-generated or user-provided captions** per photo
+  - Masonry layout for varied image sizes
+  - **Automatic placeholder handling** if no images provided
   
 - [ ] **Timeline Page**
   - Vertical timeline with dates/events
   - Milestone markers
   - Responsive design
+  - **Optional photo per timeline event**
 
 **Themes to Support (MVP):**
 - [ ] Birthday
@@ -112,16 +127,22 @@ Build 4 core page components (each with 2-3 variants):
   - Package as deployable artifact
 
 ### **PHASE 6: Deployment Integration** (Days 13-14)
+- [ ] **Image Storage & Optimization**
+  - Convert images to WebP format
+  - Generate responsive image variants (thumbnail, medium, large)
+  - Optimize file sizes
+  - Bundle with deployment
 - [ ] GitHub Pages deployment
   - Create new GitHub repo via API (user needs to auth)
-  - Push generated site to repo
+  - Push generated site **with images** to repo
   - Enable GitHub Pages
   - Return live URL
 - [ ] Vercel deployment (alternative)
   - Use Vercel API to deploy
+  - **Upload images to Vercel's CDN**
   - Return live URL
 - [ ] Simple option: Direct download
-  - User downloads ZIP file
+  - User downloads ZIP file **with embedded images**
   - Can host anywhere manually
 
 ### **PHASE 7: Polish & UX** (Days 15-16)
@@ -151,23 +172,26 @@ Build 4 core page components (each with 2-3 variants):
 ├── /app
 │   ├── page.tsx                    ← Main landing page (the tool UI)
 │   ├── /create
-│   │   └── page.tsx                ← Input form page
+│   │   └── page.tsx                ← Input form page (with image upload)
 │   ├── /preview
 │   │   └── page.tsx                ← Preview generated site
 │   ├── /api
 │   │   ├── generate/route.ts       ← AI generation endpoint
-│   │   └── deploy/route.ts         ← Deployment endpoint
+│   │   ├── deploy/route.ts         ← Deployment endpoint
+│   │   └── upload/route.ts         ← Image upload handler
 │   └── layout.tsx
 ├── /lib
 │   ├── ai.ts                       ← OpenAI integration
 │   ├── templates.ts                ← Template registry
 │   ├── composer.ts                 ← Page assembly logic
 │   ├── deploy.ts                   ← Deployment handlers
+│   ├── imageProcessor.ts           ← Image optimization & handling
 │   └── types.ts                    ← TypeScript interfaces
 ├── /components
 │   ├── /form
 │   │   ├── InputForm.tsx
-│   │   └── PromptInput.tsx
+│   │   ├── PromptInput.tsx
+│   │   └── ImageUploader.tsx       ← Drag & drop image upload
 │   ├── /preview
 │   │   └── SitePreview.tsx
 │   ├── /ui                         ← shadcn/ui components
@@ -180,7 +204,7 @@ Build 4 core page components (each with 2-3 variants):
 │       │   ├── LetterClassic.tsx
 │       │   └── index.ts
 │       ├── /gallery
-│       │   ├── GalleryGrid.tsx
+│       │   ├── GalleryGrid.tsx     ← Uses user images
 │       │   └── index.ts
 │       └── /timeline
 │           ├── TimelineVertical.tsx
@@ -189,9 +213,9 @@ Build 4 core page components (each with 2-3 variants):
 │   ├── themes.json                 ← Theme configurations
 │   └── examples.json               ← Example sites
 ├── /public
-│   ├── /images
+│   ├── /images                     ← Static illustrations
 │   ├── /fonts
-│   └── /placeholders
+│   └── /placeholders               ← Default images when user doesn't upload
 ├── .env.local
 ├── package.json
 ├── tailwind.config.ts
@@ -201,25 +225,113 @@ Build 4 core page components (each with 2-3 variants):
 
 ---
 
+## 📸 Image Upload & Handling Architecture
+
+### **User Image Flow**
+
+```
+1. Upload (Create Page)
+   ↓
+   User selects/drags images
+   ↓
+   Client-side validation (format, size, count)
+   ↓
+   Compress & resize images
+   ↓
+   Convert to Base64 for preview
+   
+2. Processing (AI Generation)
+   ↓
+   AI analyzes images (if captions not provided)
+   ↓
+   Generates descriptions/captions
+   ↓
+   Determines best placement (Hero bg, Gallery, Timeline)
+   ↓
+   Creates optimized variants (thumbnail, medium, full)
+   
+3. Embedding (Site Generation)
+   ↓
+   Images embedded in template components
+   ↓
+   Responsive srcset generated
+   ↓
+   Lazy loading implemented
+   
+4. Deployment
+   ↓
+   Images bundled with site
+   ↓
+   Uploaded to hosting (GitHub/Vercel)
+   ↓
+   Served with optimizations
+```
+
+### **Technical Implementation**
+
+**Upload Component Features:**
+- Drag & drop interface with preview
+- Maximum 10 images (configurable)
+- Supported formats: JPG, PNG, WebP
+- Max size per image: 5MB
+- Automatic orientation correction
+- Crop/rotate tools (optional)
+
+**Image Processing:**
+- Client-side compression using `browser-image-compression`
+- Generate 3 variants:
+  - Thumbnail: 300px width
+  - Medium: 800px width  
+  - Full: 1920px width
+- Convert to WebP for optimal size
+- Maintain aspect ratios
+
+**Storage Strategy (Zero-Cost MVP):**
+- **During creation**: Base64 in memory/state
+- **After generation**: Embedded directly in HTML/deployed site
+- **No separate storage needed**: Images are part of the static site
+- **Alternative for Phase 2**: Optional Cloudinary/ImgIX integration
+
+**AI Image Analysis:**
+- Use OpenAI Vision API to generate captions
+- Analyze image content for appropriate placement
+- Suggest which images work best for Hero, Gallery, Timeline
+- Generate alt text for accessibility
+
+**Embedding in Templates:**
+- Gallery: All images in grid/masonry layout
+- Hero: Best/first image as background
+- Timeline: Associate images with specific events
+- Letter: Optional decorative border image
+
+**Fallback Strategy:**
+- If no images uploaded: Use beautiful placeholder illustrations
+- Gradients and patterns as alternatives
+- Theme-appropriate default images
+
+---
+
 ## 🎯 MVP Feature Checklist
 
 ### Must Have (MVP)
 - ✅ Simple text prompt input
+- ✅ **Photo upload capability (up to 10 images)**
 - ✅ AI theme detection
 - ✅ 3 themes (Birthday, Anniversary, Friendship)
 - ✅ 4 page types (Hero, Letter, Gallery, Timeline)
+- ✅ **AI-generated captions for uploaded photos**
 - ✅ Preview before deployment
 - ✅ Generate shareable link
 - ✅ Mobile responsive
 
 ### Nice to Have (Post-MVP)
-- ⏳ Photo upload capability
 - ⏳ Multiple color schemes per theme
 - ⏳ Custom domain purchase
 - ⏳ Password protection for sites
 - ⏳ Expiring links (auto-delete after 30 days)
 - ⏳ View counter
 - ⏳ Allow recipient to download/save site
+- ⏳ Video support (in addition to images)
 
 ### Future (Version 2)
 - 📅 More themes (Newborn, Graduation, Retirement, Pet Memorial)
