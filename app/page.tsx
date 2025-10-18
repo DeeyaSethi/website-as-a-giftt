@@ -1,7 +1,44 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  const [activeStep, setActiveStep] = useState(0);
+
+  const steps = [
+    {
+      icon: "/images/icons/describe.jpg",
+      title: "Describe",
+      description: "Tell us about the person and what makes them special",
+      gradient: "linear-gradient(135deg, #f3f0ff 0%, #ffd6e7 100%)",
+      border: "#e5dbff"
+    },
+    {
+      icon: "/images/icons/ai-magic.jpg",
+      title: "AI Creates",
+      description: "Watch AI craft a beautiful personalized website",
+      gradient: "linear-gradient(135deg, #ffd6e7 0%, #ffe4d1 100%)",
+      border: "#ffa8c5"
+    },
+    {
+      icon: "/images/icons/share.jpg",
+      title: "Share",
+      description: "Get a link to share your heartfelt gift instantly",
+      gradient: "linear-gradient(135deg, #d4e9ff 0%, #d0f4ea 100%)",
+      border: "#91c5f5"
+    }
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % steps.length);
+    }, 2000); // Change every 2 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #fff9f0 0%, #f3f0ff 50%, #d4e9ff 100%)' }}>
       {/* Navigation */}
@@ -22,11 +59,10 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section - Asymmetric Design */}
+      {/* Hero Section */}
       <section className="container mx-auto px-6 py-12 md:py-20">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-5 gap-8 items-center">
-            {/* Left: Text - Takes 3 columns */}
             <div className="md:col-span-3 text-center md:text-left">
               <h2 className="text-4xl md:text-7xl font-display font-bold mb-4 md:mb-6 leading-tight" style={{ color: '#2d3748' }}>
                 Beautiful websites.
@@ -43,7 +79,6 @@ export default function Home() {
               </Link>
             </div>
             
-            {/* Right: Hero Image - Takes 2 columns, offset */}
             <div className="md:col-span-2 relative">
               <div className="relative w-full aspect-square md:transform md:translate-y-8">
                 <Image
@@ -59,11 +94,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works - Horizontal Flow with Cards */}
-      <section className="container mx-auto px-6 py-16 md:py-24">
-        <div className="max-w-6xl mx-auto">
-          {/* Section Header */}
-          <div className="text-center mb-12 md:mb-16">
+      {/* Animated Steps Section */}
+      <section className="container mx-auto px-6 py-16 md:py-28">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
             <h3 className="text-2xl md:text-4xl font-display font-bold mb-3" style={{ color: '#2d3748' }}>
               Three simple steps
             </h3>
@@ -72,249 +106,179 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Staggered Cards Layout */}
-          <div className="grid md:grid-cols-3 gap-8 md:gap-12">
-            {/* Card 1 - Higher */}
-            <div className="md:transform md:-translate-y-8">
-              <div 
-                className="card p-8 text-center"
-                style={{ 
-                  background: 'linear-gradient(135deg, #f3f0ff 0%, #ffd6e7 100%)',
-                  borderColor: '#e5dbff'
+          {/* Single Animated Card */}
+          <div className="relative min-h-[400px] md:min-h-[500px] flex items-center justify-center">
+            {steps.map((step, index) => (
+              <div
+                key={index}
+                className="absolute inset-0 transition-all duration-500 ease-in-out"
+                style={{
+                  opacity: activeStep === index ? 1 : 0,
+                  transform: activeStep === index 
+                    ? 'translateY(0) scale(1)' 
+                    : activeStep === (index - 1 + steps.length) % steps.length
+                      ? 'translateY(-30px) scale(0.96)'
+                      : 'translateY(30px) scale(0.96)',
+                  pointerEvents: activeStep === index ? 'auto' : 'none'
                 }}
               >
-                <div className="flex justify-center mb-6">
-                  <div 
-                    className="w-24 h-24 rounded-2xl flex items-center justify-center p-5 shadow-lg"
-                    style={{ background: 'white' }}
-                  >
-                    <div className="relative w-full h-full">
-                      <Image
-                        src="/images/icons/describe.jpg"
-                        alt="Describe"
-                        fill
-                        className="object-contain"
-                      />
+                <div 
+                  className="card p-10 md:p-16 text-center shadow-2xl"
+                  style={{ 
+                    background: step.gradient,
+                    borderColor: step.border,
+                    borderWidth: '2px'
+                  }}
+                >
+                  <div className="flex justify-center mb-8">
+                    <div 
+                      className="w-28 h-28 md:w-36 md:h-36 rounded-3xl flex items-center justify-center p-6 md:p-8 shadow-xl"
+                      style={{ background: 'white' }}
+                    >
+                      <div className="relative w-full h-full">
+                        <Image
+                          src={step.icon}
+                          alt={step.title}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
                     </div>
                   </div>
+                  
+                  <h4 className="text-3xl md:text-5xl font-display font-bold mb-4" style={{ color: '#2d3748' }}>
+                    {step.title}
+                  </h4>
+                  <p className="text-base md:text-xl max-w-md mx-auto" style={{ color: '#4a5568' }}>
+                    {step.description}
+                  </p>
                 </div>
-                <div 
-                  className="inline-block px-4 py-1 rounded-full text-xs font-semibold mb-3"
-                  style={{ background: 'white', color: '#7c3aed' }}
-                >
-                  STEP 1
-                </div>
-                <h4 className="text-xl md:text-2xl font-display font-bold mb-3" style={{ color: '#2d3748' }}>
-                  Describe
-                </h4>
-                <p className="text-sm md:text-base" style={{ color: '#4a5568' }}>
-                  Tell us about the person and what makes them special
-                </p>
               </div>
-            </div>
+            ))}
+          </div>
 
-            {/* Card 2 - Middle */}
-            <div>
-              <div 
-                className="card p-8 text-center"
-                style={{ 
-                  background: 'linear-gradient(135deg, #ffd6e7 0%, #ffe4d1 100%)',
-                  borderColor: '#ffa8c5'
+          {/* Progress Dots */}
+          <div className="flex justify-center gap-3 mt-8">
+            {steps.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setActiveStep(index)}
+                className="transition-all duration-300"
+                style={{
+                  width: activeStep === index ? '32px' : '12px',
+                  height: '12px',
+                  borderRadius: '6px',
+                  background: activeStep === index 
+                    ? 'linear-gradient(135deg, #b197fc 0%, #ffa8c5 100%)'
+                    : '#e5dbff',
+                  cursor: 'pointer'
                 }}
-              >
-                <div className="flex justify-center mb-6">
-                  <div 
-                    className="w-24 h-24 rounded-2xl flex items-center justify-center p-5 shadow-lg"
-                    style={{ background: 'white' }}
-                  >
-                    <div className="relative w-full h-full">
-                      <Image
-                        src="/images/icons/ai-magic.jpg"
-                        alt="AI Creates"
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div 
-                  className="inline-block px-4 py-1 rounded-full text-xs font-semibold mb-3"
-                  style={{ background: 'white', color: '#7c3aed' }}
-                >
-                  STEP 2
-                </div>
-                <h4 className="text-xl md:text-2xl font-display font-bold mb-3" style={{ color: '#2d3748' }}>
-                  AI Creates
-                </h4>
-                <p className="text-sm md:text-base" style={{ color: '#4a5568' }}>
-                  Watch AI craft a beautiful personalized website
-                </p>
-              </div>
-            </div>
-
-            {/* Card 3 - Lower */}
-            <div className="md:transform md:translate-y-8">
-              <div 
-                className="card p-8 text-center"
-                style={{ 
-                  background: 'linear-gradient(135deg, #d4e9ff 0%, #d0f4ea 100%)',
-                  borderColor: '#91c5f5'
-                }}
-              >
-                <div className="flex justify-center mb-6">
-                  <div 
-                    className="w-24 h-24 rounded-2xl flex items-center justify-center p-5 shadow-lg"
-                    style={{ background: 'white' }}
-                  >
-                    <div className="relative w-full h-full">
-                      <Image
-                        src="/images/icons/share.jpg"
-                        alt="Share"
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div 
-                  className="inline-block px-4 py-1 rounded-full text-xs font-semibold mb-3"
-                  style={{ background: 'white', color: '#7c3aed' }}
-                >
-                  STEP 3
-                </div>
-                <h4 className="text-xl md:text-2xl font-display font-bold mb-3" style={{ color: '#2d3748' }}>
-                  Share
-                </h4>
-                <p className="text-sm md:text-base" style={{ color: '#4a5568' }}>
-                  Get a link to share your heartfelt gift instantly
-                </p>
-              </div>
-            </div>
+              />
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Occasions - Creative Masonry Layout */}
+      {/* Occasions - Clean Uniform Grid */}
       <section className="container mx-auto px-6 py-16 md:py-24">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <h3 className="text-2xl md:text-4xl font-display font-bold text-center mb-12 md:mb-16" style={{ color: '#2d3748' }}>
             Perfect for any occasion
           </h3>
           
-          {/* Bento Box Style Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {/* Birthday - Large */}
-            <div className="md:col-span-2 md:row-span-2">
-              <div 
-                className="card overflow-hidden group cursor-pointer h-full"
-                style={{ 
-                  borderColor: '#ffa8c5',
-                  background: 'white'
-                }}
-              >
-                <div className="relative h-48 md:h-full overflow-hidden">
-                  <Image
-                    src="/images/occasions/birthday.jpg"
-                    alt="Birthday"
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-4 md:p-6">
-                  <h4 className="text-lg md:text-2xl font-display font-bold mb-2" style={{ color: '#2d3748' }}>
-                    Birthdays
-                  </h4>
-                  <p className="text-sm md:text-base hidden md:block" style={{ color: '#4a5568' }}>
-                    Celebrate their special day
-                  </p>
-                </div>
+            <div 
+              className="card overflow-hidden group cursor-pointer"
+              style={{ 
+                borderColor: '#ffa8c5',
+                background: 'white'
+              }}
+            >
+              <div className="aspect-[3/4] relative overflow-hidden">
+                <Image
+                  src="/images/occasions/birthday.jpg"
+                  alt="Birthday"
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+              </div>
+              <div className="p-4 text-center">
+                <h4 className="font-semibold text-sm md:text-base" style={{ color: '#2d3748' }}>
+                  Birthdays
+                </h4>
               </div>
             </div>
 
-            {/* Anniversary */}
-            <div className="md:col-span-2">
-              <div 
-                className="card overflow-hidden group cursor-pointer"
-                style={{ 
-                  borderColor: '#b197fc',
-                  background: 'white'
-                }}
-              >
-                <div className="grid grid-cols-2 gap-0">
-                  <div className="relative h-32 md:h-40 overflow-hidden">
-                    <Image
-                      src="/images/occasions/anniversary.jpg"
-                      alt="Anniversary"
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="p-4 md:p-6 flex flex-col justify-center">
-                    <h4 className="text-base md:text-xl font-display font-bold mb-1" style={{ color: '#2d3748' }}>
-                      Anniversaries
-                    </h4>
-                    <p className="text-xs md:text-sm" style={{ color: '#4a5568' }}>
-                      Honor your love
-                    </p>
-                  </div>
-                </div>
+            <div 
+              className="card overflow-hidden group cursor-pointer"
+              style={{ 
+                borderColor: '#b197fc',
+                background: 'white'
+              }}
+            >
+              <div className="aspect-[3/4] relative overflow-hidden">
+                <Image
+                  src="/images/occasions/anniversary.jpg"
+                  alt="Anniversary"
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+              </div>
+              <div className="p-4 text-center">
+                <h4 className="font-semibold text-sm md:text-base" style={{ color: '#2d3748' }}>
+                  Anniversaries
+                </h4>
               </div>
             </div>
 
-            {/* Friendship */}
-            <div>
-              <div 
-                className="card overflow-hidden group cursor-pointer"
-                style={{ 
-                  borderColor: '#91c5f5',
-                  background: 'white'
-                }}
-              >
-                <div className="aspect-square relative overflow-hidden">
-                  <Image
-                    src="/images/occasions/friendship.jpg"
-                    alt="Friendship"
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-3 md:p-4 text-center">
-                  <h4 className="font-semibold text-sm md:text-base" style={{ color: '#2d3748' }}>
-                    Friendship
-                  </h4>
-                </div>
+            <div 
+              className="card overflow-hidden group cursor-pointer"
+              style={{ 
+                borderColor: '#91c5f5',
+                background: 'white'
+              }}
+            >
+              <div className="aspect-[3/4] relative overflow-hidden">
+                <Image
+                  src="/images/occasions/friendship.jpg"
+                  alt="Friendship"
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+              </div>
+              <div className="p-4 text-center">
+                <h4 className="font-semibold text-sm md:text-base" style={{ color: '#2d3748' }}>
+                  Friendship
+                </h4>
               </div>
             </div>
 
-            {/* Baby */}
-            <div>
-              <div 
-                className="card overflow-hidden group cursor-pointer"
-                style={{ 
-                  borderColor: '#7dd3c0',
-                  background: 'white'
-                }}
-              >
-                <div className="aspect-square relative overflow-hidden">
-                  <Image
-                    src="/images/occasions/baby.jpg"
-                    alt="New Baby"
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-3 md:p-4 text-center">
-                  <h4 className="font-semibold text-sm md:text-base" style={{ color: '#2d3748' }}>
-                    New Baby
-                  </h4>
-                </div>
+            <div 
+              className="card overflow-hidden group cursor-pointer"
+              style={{ 
+                borderColor: '#7dd3c0',
+                background: 'white'
+              }}
+            >
+              <div className="aspect-[3/4] relative overflow-hidden">
+                <Image
+                  src="/images/occasions/baby.jpg"
+                  alt="New Baby"
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+              </div>
+              <div className="p-4 text-center">
+                <h4 className="font-semibold text-sm md:text-base" style={{ color: '#2d3748' }}>
+                  New Baby
+                </h4>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA - Centered with background */}
+      {/* CTA */}
       <section className="container mx-auto px-6 py-20 md:py-32">
         <div 
           className="max-w-3xl mx-auto text-center rounded-3xl p-12 md:p-16"
