@@ -1,0 +1,68 @@
+{
+  "birthday": {
+    "name": "Birthday",
+    "description": "Celebrate another trip around the sun",
+    "icon": "🎂",
+    "defaultColors": {
+      "primary": "#FF6B9D",
+      "secondary": "#FFA07A",
+      "accent": "#FFD700",
+      "background": "#FFF5F7",
+      "text": "#2D3748"
+    },
+    "suggestedPages": ["hero", "letter", "timeline", "gallery"]
+  },
+  "anniversary": {
+    "name": "Anniversary",
+    "description": "Celebrate love and commitment",
+    "icon": "💝",
+    "defaultColors": {
+      "primary": "#E63946",
+      "secondary": "#F08080",
+      "accent": "#FFB6C1",
+      "background": "#FFF0F5",
+      "text": "#2D3748"
+    },
+    "suggestedPages": ["hero", "letter", "timeline", "gallery"]
+  },
+  "friendship": {
+    "name": "Friendship",
+    "description": "Honor your amazing friends",
+    "icon": "🤝",
+    "defaultColors": {
+      "primary": "#4ECDC4",
+      "secondary": "#45B7D1",
+      "accent": "#FFA07A",
+      "background": "#F0F9FF",
+      "text": "#2D3748"
+    },
+    "suggestedPages": ["hero", "letter", "messages", "gallery"]
+  },
+  "newborn": {
+    "name": "New Arrival",
+    "description": "Welcome a precious new life",
+    "icon": "👶",
+    "defaultColors": {
+      "primary": "#A8E6CF",
+      "secondary": "#FFD3B6",
+      "accent": "#FFAAA5",
+      "background": "#FFFBF0",
+      "text": "#2D3748"
+    },
+    "suggestedPages": ["hero", "letter", "timeline"]
+  },
+  "general": {
+    "name": "General Celebration",
+    "description": "Celebrate any special moment",
+    "icon": "✨",
+    "defaultColors": {
+      "primary": "#9B59B6",
+      "secondary": "#3498DB",
+      "accent": "#F39C12",
+      "background": "#F8F9FA",
+      "text": "#2D3748"
+    },
+    "suggestedPages": ["hero", "letter", "gallery"]
+  }
+}
+

@@ -1,0 +1,138 @@
+🧠 Project Idea: “Website as a Gift”
+
+I want to build a platform called “Website as a Gift” — where anyone can easily create a small, personalized website as a digital gift.
+Examples: a birthday website, anniversary website, newborn announcement, or friendship page.
+
+⸻
+
+🎯 Vision
+
+The experience should feel magical — a user gives some details about the person or event, and an AI automatically generates a beautiful, hosted website as a heartfelt gift.
+
+⸻
+
+🧩 Core Flow
+	1.	User answers questions or provides a short prompt (e.g. “Make a birthday website for my best friend Ananya who loves cats and travel”).
+	2.	AI determines:
+	•	The theme (Birthday / Anniversary / Newborn / Friendship / etc.)
+	•	The page layout (Gallery, Messages, Timeline, About, etc.)
+	3.	AI generates personalized text and captions for each page.
+	4.	The system stitches together pre-built page components into a React-based site.
+	5.	The site is auto-deployed on GitHub Pages or Vercel.
+	6.	Optionally, the user can purchase a custom domain via an API integration.
+
+⸻
+
+⚙️ Tech Stack
+
+Frontend + Backend
+	•	Next.js 15 (App Router) → for full-stack rendering + static export
+	•	React + TypeScript → ensures maintainable, scalable components
+	•	Tailwind CSS → modern, fast styling
+	•	shadcn/ui (or DaisyUI) → consistent, polished UI components
+
+AI Integration
+	•	Claude 3.5 Sonnet or OpenAI GPT-4o-mini
+	•	Use AI for:
+	•	Selecting the most fitting theme
+	•	Deciding which page templates to use
+	•	Generating text, tone, and captions
+
+Hosting & Deployment
+	•	Vercel (for live preview and deployment)
+	•	GitHub Pages (for free hosting)
+	•	Optional: Namecheap API / GoDaddy API (for domain purchases)
+
+
+⸻
+
+🧱 Architecture Overview
+User Input → Theme Selector → AI Engine → Template Composer → Deployer
+1️⃣ Input Layer
+
+Collects traits, relationship, tone, occasion, etc.
+
+2️⃣ Theme Selector
+
+AI (or rules engine) classifies input into a theme like Birthday, Anniversary, etc.
+
+3️⃣ AI Engine
+
+Decides:
+	•	Which page components to include (Gallery, Letter, Messages, Timeline)
+	•	The order of those pages
+	•	The content tone and generated copy
+
+4️⃣ Template Composer
+
+A modular system of React components:Each template follows a common interface so that pages can be dynamically assembled.
+Each template follows a common interface so that pages can be dynamically assembled.
+
+5️⃣ Deployer
+
+Exports the project using next export and deploys it:
+	•	GitHub Pages (via GitHub API)
+	•	or Vercel (via Deployment API)
+
+⸻
+
+🧩 Folder Structure (suggested)
+/website-as-a-gift
+ ┣ /app
+ ┃ ┣ /api
+ ┃ ┃ ┣ generate-site.ts       ← generates site from AI + templates
+ ┃ ┃ ┗ deploy.ts              ← handles deployment
+ ┃ ┣ /[theme]
+ ┃ ┃ ┣ /components            ← reusable page templates per theme
+ ┃ ┃ ┗ /layout.tsx
+ ┣ /lib
+ ┃ ┣ ai.ts                    ← AI logic (theme + content generation)
+ ┃ ┣ templates.ts             ← registry of available templates
+ ┃ ┣ deploy.ts                ← deployment handler
+ ┃ ┗ utils.ts                 ← helper functions
+ ┣ /data                      ← static assets, theme metadata
+ ┣ /public                    ← images, icons, assets
+ ┣ package.json
+ ┗ tailwind.config.js
+
+ 🧩 Key Design Principles
+	1.	Extensible Architecture:
+	•	Each page type (Gallery, Letter, Timeline, etc.) is a pluggable React component following a shared interface.
+	•	Adding a new page type or theme should require zero changes to the core logic.
+	2.	Scalable AI Layer:
+	•	AI logic separated from templates (in /lib/ai.ts)
+	•	Easy to swap models or add fallback logic.
+	3.	Clean Code Structure:
+	•	Feature-based folders
+	•	Strong TypeScript typings
+	•	Config-driven theme and page registry (to easily extend)
+	4.	Composable and Reusable Components:
+	•	Each UI block is standalone and shareable across themes.
+	5.	Simple Deployment Abstraction:
+	•	The deployment logic (/lib/deploy.ts) is modular, allowing new destinations like Cloudflare Pages or Netlify later.
+
+⸻
+
+🚀 MVP Goals
+
+✅ Input form → user enters prompt or answers
+✅ AI selects pages + generates text
+✅ Previews generated site
+✅ Deploys to Vercel or GitHub Pages with one click
+
+⸻
+
+🧩 Future Extensions
+	•	Add premium templates and paid domains
+	•	Add photo/video upload and AI captioning
+	•	Add analytics dashboard (views, shares, etc.)
+	•	Add printable “poster as a gift” option
+	•	Add gift customization (color palette, tone, music background)
+
+⸻
+
+💡 Focus for Cursor AI
+
+Focus on building a clean, modular, and extendible architecture from the start —
+something that can scale easily as new features (like posters, digital cards, or e-gift pages) are added.
+Use strong TypeScript interfaces, clean file organization, and abstraction boundaries (AI, Template, Deployment layers).
