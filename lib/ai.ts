@@ -1,19 +1,15 @@
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import type {
   UserInput,
   GeneratedSiteConfig,
   AIGenerationResponse,
-  Theme,
   PageType,
-  ContentTone,
 } from "./types";
 
 /**
- * Initialize OpenAI client
+ * Initialize Gemini client
  */
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 /**
  * Generate a complete site configuration from user input
@@ -22,30 +18,24 @@ export async function generateSiteConfig(
   input: UserInput
 ): Promise<AIGenerationResponse> {
   try {
-    const prompt = buildPrompt(input);
-    
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: SYSTEM_PROMPT,
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.8,
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        temperature: 0.8,
+        responseMimeType: "application/json",
+      },
     });
-
-    const content = response.choices[0].message.content;
-    if (!content) {
+    
+    const prompt = buildFullPrompt(input);
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+    
+    if (!text) {
       throw new Error("No response from AI");
     }
 
-    const config = JSON.parse(content) as GeneratedSiteConfig;
+    const config = JSON.parse(text) as GeneratedSiteConfig;
     
     // Validate and sanitize the config
     const validatedConfig = validateConfig(config);
@@ -64,11 +54,79 @@ export async function generateSiteConfig(
 }
 
 /**
+ * Build complete prompt with system instructions
+ */
+function buildFullPrompt(input: UserInput): string {
+  const userContent = input.additionalDetails || {};
+  
+  let prompt = `${SYSTEM_PROMPT}
+
+RECIPIENT: ${input.recipientName}
+OCCASION: ${input.occasion || 'general'}
+
+USER PROVIDED CONTENT (USE EXACTLY AS PROVIDED):
+
+`;
+
+  // Hero content
+  if (userContent.hero) {
+    prompt += `HERO PAGE:
+- Title: ${userContent.hero.title || input.recipientName}
+- Subtitle: ${userContent.hero.subtitle || ''}
+- Message: ${userContent.hero.message || ''}
+
+`;
+  }
+
+  // Letter content
+  if (userContent.letter) {
+    prompt += `LETTER PAGE:
+- Body: ${userContent.letter.body || ''}
+- Signature: ${userContent.letter.signature || 'Your Friend'}
+
+`;
+  }
+
+  // Timeline content
+  if (userContent.timeline && userContent.timeline.events) {
+    prompt += `TIMELINE PAGE:
+Include these events EXACTLY as written:
+${userContent.timeline.events.map((e: any, i: number) => 
+  `${i + 1}. Date: "${e.date}", Title: "${e.title}", Description: "${e.description}"`
+).join('\n')}
+
+`;
+  }
+
+  // Gallery
+  if (userContent.gallery && userContent.images?.length > 0) {
+    prompt += `GALLERY PAGE:
+User has uploaded ${userContent.images.length} photos. Include a gallery page.
+
+`;
+  }
+
+  prompt += `
+IMPORTANT: Use the user's provided content EXACTLY as written. Only choose appropriate theme colors.
+
+Generate the complete JSON configuration now. Include ONLY the pages the user provided content for.`;
+
+  return prompt;
+}
+
+/**
  * System prompt for AI
  */
-const SYSTEM_PROMPT = `You are an expert at creating personalized gift websites. Your job is to analyze user input and generate a complete website configuration.
+const SYSTEM_PROMPT = `You are assembling a personalized gift website. The user has provided specific content they want to use.
 
-You must respond with a valid JSON object matching this structure:
+YOUR JOB:
+1. Use the user's provided content EXACTLY as written - do NOT rewrite or change it
+2. Choose appropriate theme colors based on the occasion
+3. Structure the content into the correct JSON format
+4. Include ONLY the pages the user provided content for
+5. If content is missing or empty, skip that page
+
+You must respond with a valid JSON object matching this EXACT structure:
 {
   "theme": "birthday" | "anniversary" | "friendship" | "newborn" | "general",
   "metadata": {
@@ -87,45 +145,76 @@ You must respond with a valid JSON object matching this structure:
   },
   "pages": [
     {
-      "type": "hero" | "letter" | "gallery" | "timeline" | "messages",
+      "type": "hero" | "letter" | "gallery" | "timeline",
       "order": number,
       "variant": "string",
       "content": {
-        // Content varies by page type
+        // Content structure based on page type
       }
     }
   ]
 }
 
 Guidelines:
-1. Choose 3-5 pages that best fit the occasion
-2. Generate heartfelt, personalized content based on the details provided
-3. Match the tone requested (heartfelt, funny, romantic, casual)
-4. Pick appropriate colors for the theme
-5. Be creative but appropriate
-6. Keep text concise and impactful
+1. **USE USER CONTENT**: Copy the user's provided text EXACTLY - do NOT modify, rewrite, or "improve" it
+2. **FILL METADATA**: Generate appropriate title, description based on recipient name and occasion
+3. **CHOOSE COLORS**: Pick a color palette that matches the occasion/theme
+4. **INCLUDE ONLY PROVIDED PAGES**: If user provided hero + letter, include ONLY those two pages
+5. **CORRECT ORDER**: Always hero (0), then letter (1), gallery (2), timeline (3) as applicable
 
 Page types and their content structure:
-- hero: { title, subtitle, greeting }
-- letter: { title, body, signature }
-- gallery: { title, items: [{ caption, placeholder }] }
-- timeline: { title, events: [{ date, title, description }] }
-- messages: { title, messages: [{ from, message }] }`;
 
-/**
- * Build the user prompt
- */
-function buildPrompt(input: UserInput): string {
-  return `Create a personalized gift website based on this description:
-
-${input.prompt}
-
-${input.recipientName ? `Recipient: ${input.recipientName}` : ""}
-${input.occasion ? `Occasion: ${input.occasion}` : ""}
-${input.tone ? `Desired tone: ${input.tone}` : ""}
-
-Generate a complete website configuration with appropriate theme, pages, content, and colors.`;
+HERO PAGE (ALWAYS FIRST):
+{
+  "type": "hero",
+  "order": 0,
+  "content": {
+    "title": "Main impact text - HUGE and SHORT (max 5 words, e.g., 'Sarah!' or 'Happy Birthday!' or 'You're Amazing!')",
+    "subtitle": "One impactful line only (optional, max 10 words)",
+    "message": "ONE sentence only. Make it count."
+  }
 }
+EXAMPLE: For a music-lover birthday → title: "Rock On, Sarah!", subtitle: "Another year, another playlist", message: "Let's celebrate you and your incredible vibe."
+
+LETTER PAGE:
+{
+  "type": "letter",
+  "order": 1,
+  "content": {
+    "title": "Short title (2-4 words, e.g., 'For You' or 'A Note')",
+    "body": "2-3 SHORT paragraphs MAX. Each paragraph 2-3 sentences. Be heartfelt but BRIEF. Reference their interests if mentioned. Use \\n\\n between paragraphs.",
+    "signature": "Sender name or 'Your Friend' or similar"
+  }
+}
+EXAMPLE: For a travel-lover → Reference their adventures, favorite places, or wanderlust spirit in the letter.
+
+GALLERY PAGE:
+{
+  "type": "gallery",
+  "order": 2,
+  "content": {
+    "title": "Gallery title (e.g., 'Our Memories')",
+    "subtitle": "Optional subtitle"
+  }
+}
+
+TIMELINE PAGE:
+{
+  "type": "timeline",
+  "order": 3,
+  "content": {
+    "title": "One word or 2 words (e.g., 'Journey' or 'Our Story')",
+    "events": [
+      {
+        "date": "Short timeframe (e.g., '2020', 'Spring', 'The Beginning')",
+        "title": "Event name (max 5 words)",
+        "description": "ONE sentence. Be specific and meaningful."
+      }
+    ]
+  }
+}
+Include 3-5 events maximum. Make them personal and meaningful, not generic.
+EXAMPLE: For coffee-lovers → "First Coffee Date", "Our Favorite Café", "That Espresso Mishap"`;
 
 /**
  * Validate and sanitize AI-generated config
@@ -154,23 +243,16 @@ export async function generatePageContent(
   pageType: PageType,
   context: string
 ): Promise<any> {
-  // This can be used for regenerating individual pages
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `Generate content for a ${pageType} page in a gift website. Return JSON only.`,
-      },
-      {
-        role: "user",
-        content: context,
-      },
-    ],
-    response_format: { type: "json_object" },
-    temperature: 0.8,
+  const model = genAI.getGenerativeModel({ 
+    model: "gemini-2.5-flash",
+    generationConfig: {
+      temperature: 0.8,
+      responseMimeType: "application/json",
+    },
   });
 
-  return JSON.parse(response.choices[0].message.content || "{}");
+  const prompt = `Generate content for a ${pageType} page in a gift website based on: ${context}. Return JSON only with appropriate fields for this page type.`;
+  
+  const result = await model.generateContent(prompt);
+  return JSON.parse(result.response.text() || "{}");
 }
-

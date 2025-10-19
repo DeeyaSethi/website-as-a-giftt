@@ -2,7 +2,7 @@
  * Utility functions
  */
 
-import type { GeneratedSiteConfig } from "./types";
+import type { GeneratedSiteConfig, Theme } from "./types";
 
 /**
  * Generate a slug from text
@@ -130,6 +130,88 @@ export function validateSiteConfig(config: GeneratedSiteConfig): {
  */
 export function generateShareableUrl(siteId: string, domain: string): string {
   return `${domain}/${siteId}`;
+}
+
+/**
+ * Get theme-specific color palette
+ */
+// Convert colorPalette to template colors format
+export function getColorsFromPalette(colorPalette: any) {
+  return {
+    primary: colorPalette.primary,
+    secondary: colorPalette.secondary,
+    accent: colorPalette.accent,
+    background: colorPalette.background,
+    textDark: colorPalette.text || "#1E293B",
+    textMedium: "#64748B",
+    textLight: "#94A3B8",
+  };
+}
+
+export function getThemeColors(theme: Theme, colorPalette?: any) {
+  // If colorPalette is provided (user-selected), use it
+  if (colorPalette) {
+    return getColorsFromPalette(colorPalette);
+  }
+  
+  // Otherwise fallback to theme defaults
+  const themes: Record<Theme, {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    textDark: string;
+    textMedium: string;
+    textLight: string;
+  }> = {
+    birthday: {
+      primary: "#FF6B9D",
+      secondary: "#FEC6DF",
+      accent: "#FFE5EC",
+      background: "#FFF5F7",
+      textDark: "#2D1B2E",
+      textMedium: "#6B4C6F",
+      textLight: "#9F7FA3",
+    },
+    anniversary: {
+      primary: "#C9A9E9",
+      secondary: "#E5D4F7",
+      accent: "#F3E8FF",
+      background: "#FAF5FF",
+      textDark: "#2E1A47",
+      textMedium: "#5B4570",
+      textLight: "#8B7398",
+    },
+    friendship: {
+      primary: "#96D8FF",
+      secondary: "#C9E9FF",
+      accent: "#E5F4FF",
+      background: "#F0F9FF",
+      textDark: "#1A3447",
+      textMedium: "#466480",
+      textLight: "#6B8BA3",
+    },
+    newborn: {
+      primary: "#B4E4CE",
+      secondary: "#D9F2E6",
+      accent: "#EDF9F3",
+      background: "#F5FDF9",
+      textDark: "#1A3E2E",
+      textMedium: "#3D6B5A",
+      textLight: "#6B9B87",
+    },
+    general: {
+      primary: "#A78BFA",
+      secondary: "#C4B5FD",
+      accent: "#E9D5FF",
+      background: "#FAF5FF",
+      textDark: "#1E293B",
+      textMedium: "#475569",
+      textLight: "#64748B",
+    },
+  };
+
+  return themes[theme] || themes.birthday;
 }
 
 /**

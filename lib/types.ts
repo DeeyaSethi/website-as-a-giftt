@@ -8,7 +8,18 @@ export type Theme = "birthday" | "anniversary" | "friendship" | "newborn" | "gen
 /**
  * Available page component types
  */
-export type PageType = "hero" | "letter" | "gallery" | "timeline" | "messages";
+export type PageType = 
+  | "hero" 
+  | "letter" 
+  | "gallery" 
+  | "timeline" 
+  | "messages"
+  | "garden"
+  | "music"
+  | "travel"
+  | "recipes"
+  | "quotes"
+  | "memories";
 
 /**
  * Tone/style of the content
@@ -34,6 +45,7 @@ export interface GeneratedSiteConfig {
   pages: PageConfig[];
   metadata: SiteMetadata;
   colorPalette: ColorPalette;
+  images?: import("./imageProcessor").ProcessedImage[]; // User-uploaded images
 }
 
 /**
