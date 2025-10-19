@@ -39,7 +39,7 @@ const OCCASION_PROMPTS = [
   },
   {
     occasion: "Congratulations",
-    image: "/images/occasions/congratulations.jpg", // NEED THIS IMAGE
+    image: "/images/occasions/congratulations.jpg",
     samples: [
       "Graduate who's starting their dream job",
       "Friend who just bought their first home",
@@ -48,7 +48,7 @@ const OCCASION_PROMPTS = [
   },
   {
     occasion: "Just Because",
-    image: "/images/occasions/just-because.jpg", // NEED THIS IMAGE
+    image: "/images/occasions/just-because.jpg",
     samples: [
       "Someone special who deserves appreciation",
       "Friend who's been there through everything",
