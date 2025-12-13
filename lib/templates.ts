@@ -25,9 +25,6 @@ export const templateRegistry: TemplateRegistry = {
   gallery: {
     // Will add variants: grid, masonry, carousel
   },
-  timeline: {
-    // Will add variants: vertical, horizontal, modern
-  },
   messages: {
     // Will add variants: cards, list, bubbles
   },

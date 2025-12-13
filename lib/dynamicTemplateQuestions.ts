@@ -25,18 +25,14 @@ export function getTemplateQuestions(
   switch (templateId) {
     case "music":
       return getMusicQuestions(desc);
-    case "recipes":
-      return getRecipeQuestions(desc);
     case "travel":
       return getTravelQuestions(desc);
     case "garden":
       return getGardenQuestions(desc);
-    case "quotes":
-      return getQuotesQuestions(desc);
-    case "timeline":
-      return getTimelineQuestions(desc);
     case "memories":
       return getMemoriesQuestions(desc);
+    case "techfacts":
+      return getTechFactsQuestions(desc);
     default:
       return [];
   }
@@ -45,150 +41,87 @@ export function getTemplateQuestions(
 function getMusicQuestions(desc: string): TemplateQuestion[] {
   const questions: TemplateQuestion[] = [
     {
-      id: "musicType",
-      label: "What kind of music do they love?",
+      id: "playlistSource",
+      label: "How would you like to add music?",
       type: "select",
       placeholder: "",
       required: true,
       options: [
-        "Bollywood Songs",
-        "Hollywood Pop",
-        "Classical Music",
-        "Rock & Metal",
-        "Hip Hop & Rap",
-        "EDM & Electronic",
-        "Indie & Alternative",
-        "K-pop & J-pop",
-        "Jazz & Blues",
-        "Country Music",
+        "Choose a pre-made playlist (popular artists)",
+        "Add my own YouTube links",
       ],
-      helperText: "AI will suggest songs in this genre",
+      helperText: "Select a curated playlist or add your own",
     },
-  ];
-
-  // If Bollywood mentioned
-  if (desc.includes("bollywood") || desc.includes("hindi")) {
-    questions.push({
-      id: "bollywoodEra",
-      label: "Favorite Bollywood era?",
+    {
+      id: "predefinedPlaylist",
+      label: "Select a Playlist",
       type: "select",
       placeholder: "",
-      options: ["90s Classics", "2000s Hits", "Modern (2010+)", "Golden Era (70s-80s)", "All Time Favorites"],
-      helperText: "We'll pick iconic songs from this period",
-    });
-  }
-
-  // If specific artists mentioned
-  questions.push({
-    id: "favoriteArtists",
-    label: "Favorite artists or bands? (optional)",
-    type: "text",
-    placeholder: "e.g., Arijit Singh, Taylor Swift, AR Rahman...",
-    helperText: "Comma separated - AI will include their songs",
-  });
-
-  // Add mood/occasion
-  questions.push({
-    id: "playlistMood",
-    label: "What's the vibe?",
-    type: "select",
-    placeholder: "",
-    required: true,
-    options: [
-      "Romantic & Dreamy",
-      "Upbeat & Energetic",
-      "Chill & Relaxing",
-      "Nostalgic & Emotional",
-      "Party & Dance",
-      "Motivational & Inspiring",
-    ],
-    helperText: "Sets the overall playlist mood",
-  });
-
-  // Movie dialogues if they love movies
-  if (desc.includes("movie") || desc.includes("film") || desc.includes("cinema")) {
-    questions.push({
-      id: "favoriteMovieDialogue",
-      label: "Favorite movie dialogue? (optional)",
+      required: false,
+      options: [
+        "Arijit Singh - Romantic Bollywood",
+        "A.R. Rahman - Legendary Classics",
+        "Shreya Ghoshal - Melodious Hits",
+        "---",
+        "Taylor Swift - Pop Essentials",
+        "Ed Sheeran - Love Songs",
+        "The Weeknd - R&B Vibes",
+        "---",
+        "BTS - K-pop Legends",
+        "BLACKPINK - Girl Power",
+        "---",
+        "Timeless Love Songs - Romantic Classics",
+        "Ultimate Party Mix - Dance Hits",
+        "Indie Love Songs - Unique & Heartfelt",
+      ],
+      helperText: "Choose a curated playlist (only if you selected pre-made above)",
+    },
+    {
+      id: "youtubeInput",
+      label: "Your YouTube Links",
       type: "textarea",
-      placeholder: "e.g., 'Mere paas maa hai' or any iconic line they love...",
-      helperText: "We'll feature this beautifully in the template",
-    });
-  }
+      placeholder: "Paste YouTube links (one per line):\n\nhttps://www.youtube.com/watch?v=dQw4w9WgXcQ\nhttps://youtu.be/VIDEO_ID\n\nOr paste a full playlist URL:\nhttps://www.youtube.com/playlist?list=PLx0sYbCqOb8...",
+      required: false,
+      helperText: "🎵 Add your own links (only if you selected 'Add my own' above)",
+    },
+    {
+      id: "playlistTitle",
+      label: "Playlist Title (Optional)",
+      type: "text",
+      placeholder: "e.g., Our Special Songs, Songs That Remind Me of You",
+      required: false,
+      helperText: "Give your playlist a custom name",
+    },
+    {
+      id: "playlistDescription",
+      label: "What does this music mean? (Optional)",
+      type: "text",
+      placeholder: "e.g., Songs from our road trip, Your favorite artist's collection",
+      required: false,
+      helperText: "Add a personal touch to your playlist",
+    },
+    {
+      id: "customThumbnail",
+      label: "Custom Music Thumbnail (Optional)",
+      type: "text",
+      placeholder: "Paste image URL (e.g., from Canva or Imgur)",
+      required: false,
+      helperText: "🎨 Add a beautiful thumbnail if YouTube embedding fails. See CANVA_PROMPTS.md for ideas!",
+    },
+  ];
 
   return questions;
-}
-
-function getRecipeQuestions(desc: string): TemplateQuestion[] {
-  return [
-    {
-      id: "cuisineType",
-      label: "What cuisine do they love?",
-      type: "select",
-      placeholder: "",
-      required: true,
-      options: [
-        "Indian",
-        "Italian",
-        "Chinese",
-        "Mexican",
-        "Japanese",
-        "Mediterranean",
-        "Thai",
-        "American",
-        "Fusion",
-      ],
-      helperText: "AI will suggest recipes from this cuisine",
-    },
-    {
-      id: "favoriteDishe",
-      label: "Their favorite dish?",
-      type: "text",
-      placeholder: "e.g., Biryani, Pizza, Pad Thai...",
-      required: true,
-      helperText: "We'll include this recipe with details",
-    },
-    {
-      id: "cookingMemory",
-      label: "A cooking memory together? (optional)",
-      type: "textarea",
-      placeholder: "e.g., That time we tried making pasta and it was a disaster...",
-      helperText: "Personal touch for the recipe book",
-    },
-  ];
 }
 
 function getTravelQuestions(desc: string): TemplateQuestion[] {
   return [
     {
-      id: "favoritePlaces",
-      label: "Places you've visited together (or dream destinations)",
+      id: "placesVisited",
+      label: "Places You've Traveled Together & Memories",
       type: "textarea",
-      placeholder: "e.g., Paris (2019), Tokyo, Goa beaches, Kashmir...",
+      placeholder: "List 3-5 places with a brief memory from each:\n• Paris - Got lost but found the best café\n• Tokyo - Cherry blossoms and late-night ramen\n• Bali - Sunset at the beach temple\n• New York - Times Square on New Year's Eve\n• Iceland - Chasing the Northern Lights",
       required: true,
-      helperText: "One per line - AI will create stories for each",
-    },
-    {
-      id: "travelStyle",
-      label: "Their travel style?",
-      type: "select",
-      placeholder: "",
-      options: [
-        "Beach & Relaxation",
-        "Adventure & Hiking",
-        "City & Culture",
-        "Food & Local Experiences",
-        "Luxury & Comfort",
-        "Backpacking & Budget",
-      ],
-      helperText: "Personalizes the travel stories",
-    },
-    {
-      id: "memorableTrip",
-      label: "Most memorable trip moment? (optional)",
-      type: "textarea",
-      placeholder: "A funny or beautiful memory from your travels...",
-      helperText: "We'll highlight this story",
+      helperText: "AI will create beautiful travel stories for each place",
     },
   ];
 }
@@ -221,105 +154,37 @@ function getGardenQuestions(desc: string): TemplateQuestion[] {
   ];
 }
 
-function getQuotesQuestions(desc: string): TemplateQuestion[] {
-  const questions: TemplateQuestion[] = [
-    {
-      id: "quoteTheme",
-      label: "What kind of quotes resonate with them?",
-      type: "select",
-      placeholder: "",
-      required: true,
-      options: [
-        "Motivational & Success",
-        "Life & Wisdom",
-        "Love & Relationships",
-        "Humor & Fun",
-        "Spiritual & Peace",
-        "Friendship & Loyalty",
-        "Dreams & Ambition",
-      ],
-      helperText: "AI will curate quotes in this theme",
-    },
-  ];
-
-  // If they love books/authors
-  if (desc.includes("book") || desc.includes("read") || desc.includes("author")) {
-    questions.push({
-      id: "favoriteAuthor",
-      label: "Favorite author or book? (optional)",
-      type: "text",
-      placeholder: "e.g., Paulo Coelho, Harry Potter, Rumi...",
-      helperText: "We'll include quotes from them",
-    });
-  }
-
-  // If they're into movies
-  if (desc.includes("movie") || desc.includes("film")) {
-    questions.push({
-      id: "iconicMovieQuote",
-      label: "Iconic movie quote they love? (optional)",
-      type: "text",
-      placeholder: "e.g., 'May the Force be with you' or Bollywood dialogue...",
-      helperText: "We'll feature this beautifully",
-    });
-  }
-
-  return questions;
-}
-
-function getTimelineQuestions(desc: string): TemplateQuestion[] {
-  return [
-    {
-      id: "relationshipType",
-      label: "What's your relationship timeline about?",
-      type: "select",
-      placeholder: "",
-      required: true,
-      options: [
-        "Our Friendship",
-        "Our Love Story",
-        "Family Moments",
-        "Professional Journey",
-        "Personal Growth",
-        "Shared Adventures",
-      ],
-      helperText: "Sets the narrative tone",
-    },
-    {
-      id: "keyMoments",
-      label: "Key moments to include (one per line)",
-      type: "textarea",
-      placeholder: "e.g.,\n2018 - First meeting at college\n2020 - Road trip to Goa\n2023 - Started business together",
-      required: true,
-      helperText: "Format: Year/Date - Event title - Brief description",
-    },
-  ];
-}
-
 function getMemoriesQuestions(desc: string): TemplateQuestion[] {
   return [
     {
-      id: "memoryTheme",
-      label: "What memories should the game showcase?",
+      id: "favoriteMemories",
+      label: "Share Your Favorite Memories",
+      type: "textarea",
+      placeholder: "List 3-5 special moments you've shared:\n• Watching the sunrise from the beach\n• Our midnight ice cream run\n• Got caught in the rain and danced\n• The surprise birthday party\n• Our first road trip adventure",
+      required: true,
+      helperText: "AI will present these beautifully on the page",
+    },
+  ];
+}
+
+function getTechFactsQuestions(desc: string): TemplateQuestion[] {
+  return [
+    {
+      id: "techFactsMessage",
+      label: "Roast Your Geeky Friend (Optional) 😄",
+      type: "text",
+      placeholder: "e.g., Go study, nerd! or Stop scrolling and learn something!",
+      required: false,
+      helperText: "Add a playful, teasing message for the tech geek",
+    },
+    {
+      id: "fetchLiveFacts",
+      label: "Fetch Live Tech Facts?",
       type: "select",
       placeholder: "",
       required: true,
-      options: [
-        "Funny moments together",
-        "Adventures & trips",
-        "Inside jokes",
-        "Special celebrations",
-        "Random beautiful days",
-        "Achievements & milestones",
-      ],
-      helperText: "AI will create matching cards around this theme",
-    },
-    {
-      id: "specificMemories",
-      label: "List specific memories (optional)",
-      type: "textarea",
-      placeholder: "e.g.,\n- That coffee shop incident\n- Our first concert\n- The surprise party",
-      helperText: "These will become the memory cards",
+      options: ["Use default facts (fast)", "Fetch fresh facts from API (slower)"],
+      helperText: "Live facts require API call - may take longer",
     },
   ];
 }
@@ -330,106 +195,170 @@ function getMemoriesQuestions(desc: string): TemplateQuestion[] {
 export function getTemplateRefinementPrompt(
   templateId: string,
   content: any,
-  userDescription: string
+  originalPrompt: string = ""
 ): string {
-  const desc = userDescription.toLowerCase();
+  const desc = originalPrompt.toLowerCase();
 
   switch (templateId) {
     case "music":
       return getMusicRefinementPrompt(content, desc);
-    case "recipes":
-      return getRecipeRefinementPrompt(content, desc);
-    case "quotes":
-      return getQuotesRefinementPrompt(content, desc);
     case "travel":
       return getTravelRefinementPrompt(content, desc);
+    case "garden":
+      return getGardenRefinementPrompt(content, desc);
+    case "memories":
+      return getMemoriesRefinementPrompt(content, desc);
+    case "techfacts":
+      return getTechFactsRefinementPrompt(content, desc);
     default:
       return "";
   }
 }
 
 function getMusicRefinementPrompt(content: any, desc: string): string {
-  let prompt = `Create a personalized music playlist section.\n\n`;
+  let prompt = `Create a YouTube music playlist integration.\n\n`;
   
-  if (content.musicType) {
-    prompt += `Music Genre: ${content.musicType}\n`;
-  }
-  if (content.playlistMood) {
-    prompt += `Mood: ${content.playlistMood}\n`;
-  }
-  if (content.favoriteArtists) {
-    prompt += `Include songs by: ${content.favoriteArtists}\n`;
-  }
-  if (content.bollywoodEra) {
-    prompt += `Bollywood Era: ${content.bollywoodEra}\n`;
-  }
-
-  prompt += `\nGenerate 8-10 ${content.musicType || "meaningful"} songs that fit the ${
-    content.playlistMood || "vibe"
-  }. Include:\n`;
-  prompt += `- Song title\n- Artist name\n- A one-line reason why this song fits\n`;
+  // Check if user selected pre-made or custom
+  const usePredefined = content?.playlistSource?.includes("pre-made");
   
-  if (content.favoriteMovieDialogue) {
-    prompt += `\nAlso feature this dialogue beautifully:\n"${content.favoriteMovieDialogue}"\n`;
-  }
+  if (usePredefined && content?.predefinedPlaylist) {
+    prompt += `User selected pre-made playlist: ${content.predefinedPlaylist}\n\n`;
+    prompt += `Map this selection to the correct playlistId:\n`;
+    prompt += `- "Arijit Singh" → use playlistId: "arijit-singh"\n`;
+    prompt += `- "A.R. Rahman" → use playlistId: "ar-rahman"\n`;
+    prompt += `- "Shreya Ghoshal" → use playlistId: "shreya-ghoshal"\n`;
+    prompt += `- "Taylor Swift" → use playlistId: "taylor-swift"\n`;
+    prompt += `- "Ed Sheeran" → use playlistId: "ed-sheeran"\n`;
+    prompt += `- "The Weeknd" → use playlistId: "weeknd"\n`;
+    prompt += `- "BTS" → use playlistId: "bts"\n`;
+    prompt += `- "BLACKPINK" → use playlistId: "blackpink"\n`;
+    prompt += `- "Timeless Love Songs" → use playlistId: "romantic-classics"\n`;
+    prompt += `- "Ultimate Party Mix" → use playlistId: "party-hits"\n`;
+    prompt += `- "Indie Love Songs" → use playlistId: "indie-love"\n\n`;
+    
+    prompt += `Return:\n`;
+    prompt += `{\n`;
+    prompt += `  "usePredefined": true,\n`;
+    prompt += `  "predefinedId": "matched-playlist-id",\n`;
+    prompt += `  "title": "${content.playlistTitle || "User's custom title or artist name"}",\n`;
+    prompt += `  "description": "${content.playlistDescription || "A description"}"\n`;
+    prompt += `}\n`;
+  } else if (content?.youtubeInput) {
+    prompt += `YouTube links provided:\n${content.youtubeInput}\n\n`;
+    
+    if (content.playlistTitle) {
+      prompt += `Playlist title: ${content.playlistTitle}\n\n`;
+    }
+    
+    if (content.playlistDescription) {
+      prompt += `Description: ${content.playlistDescription}\n\n`;
+    }
 
-  return prompt;
-}
-
-function getRecipeRefinementPrompt(content: any, desc: string): string {
-  let prompt = `Create a personalized recipe collection.\n\n`;
-  
-  if (content.cuisineType) {
-    prompt += `Cuisine: ${content.cuisineType}\n`;
+    prompt += `IMPORTANT: Extract YouTube IDs from the provided links.\n\n`;
+    prompt += `YouTube URL formats:\n`;
+    prompt += `- https://www.youtube.com/watch?v=VIDEO_ID → extract VIDEO_ID\n`;
+    prompt += `- https://youtu.be/VIDEO_ID → extract VIDEO_ID\n`;
+    prompt += `- https://www.youtube.com/playlist?list=PLAYLIST_ID → extract PLAYLIST_ID\n\n`;
+    
+    prompt += `Generate response with:\n`;
+    prompt += `{\n`;
+    prompt += `  "title": "${content.playlistTitle || "Special Playlist"}",\n`;
+    prompt += `  "description": "${content.playlistDescription || "A collection of meaningful songs"}",\n`;
+    prompt += `  "youtubeVideos": [\n`;
+    prompt += `    { "videoId": "extracted_video_id_1" },\n`;
+    prompt += `    { "videoId": "extracted_video_id_2" }\n`;
+    prompt += `  ]\n`;
+    prompt += `}\n\n`;
+    prompt += `OR if it's a playlist URL:\n`;
+    prompt += `{ "playlistId": "extracted_playlist_id" }\n\n`;
+    prompt += `Extract ALL video IDs from the links provided. Return ONLY valid video/playlist IDs.\n`;
   }
-  if (content.favoriteDish) {
-    prompt += `Must include recipe for: ${content.favoriteDish}\n`;
-  }
-  if (content.cookingMemory) {
-    prompt += `Include this memory:\n"${content.cookingMemory}"\n`;
-  }
-
-  prompt += `\nGenerate 3-4 authentic ${content.cuisineType || ""} recipes with:\n`;
-  prompt += `- Recipe name\n- Ingredients list\n- Step-by-step instructions\n- A personal note or fun fact\n`;
-
-  return prompt;
-}
-
-function getQuotesRefinementPrompt(content: any, desc: string): string {
-  let prompt = `Curate an inspiring collection of quotes.\n\n`;
-  
-  if (content.quoteTheme) {
-    prompt += `Theme: ${content.quoteTheme}\n`;
-  }
-  if (content.favoriteAuthor) {
-    prompt += `Include quotes from: ${content.favoriteAuthor}\n`;
-  }
-  if (content.iconicMovieQuote) {
-    prompt += `Feature this movie quote:\n"${content.iconicMovieQuote}"\n`;
-  }
-
-  prompt += `\nGenerate 6-8 meaningful quotes about ${content.quoteTheme || "life"}.\n`;
-  prompt += `Mix of:\n- Classic wisdom\n- Modern inspiration\n- ${content.favoriteAuthor ? "Quotes from " + content.favoriteAuthor : "Diverse sources"}\n`;
 
   return prompt;
 }
 
 function getTravelRefinementPrompt(content: any, desc: string): string {
-  let prompt = `Create an interactive travel map with stories.\n\n`;
+  let prompt = `Create beautiful travel stories from these memories.\n\n`;
   
-  if (content.favoritePlaces) {
-    prompt += `Places to feature:\n${content.favoritePlaces}\n`;
-  }
-  if (content.travelStyle) {
-    prompt += `Travel Style: ${content.travelStyle}\n`;
-  }
-  if (content.memorableTrip) {
-    prompt += `Highlight this memory:\n"${content.memorableTrip}"\n`;
+  if (content && content.placesVisited) {
+    prompt += `Places and memories:\n${content.placesVisited}\n\n`;
   }
 
-  prompt += `\nFor each location, create:\n`;
-  prompt += `- Location name\n- Brief story (2-3 sentences)\n- Why it's special\n- A memorable moment there\n`;
+  prompt += `Generate a 'destinations' array where each destination has:\n`;
+  prompt += `- place: (location name, e.g., "Paris")\n`;
+  prompt += `- story: (the memory provided, expanded to 2-3 sentences with warmth)\n`;
+  prompt += `- emoji: (relevant emoji for the place)\n`;
+  prompt += `- year: (if mentioned, otherwise leave blank)\n`;
+  prompt += `\nKeep the personal touch and make it nostalgic.\n`;
 
   return prompt;
 }
 
+function getGardenRefinementPrompt(content: any, desc: string): string {
+  let prompt = `Create an interactive virtual garden.\n\n`;
+  
+  if (content && content.flowerMeaning) {
+    prompt += `Flower symbolism: ${content.flowerMeaning}\n`;
+  }
+  if (content && content.favoriteFlower) {
+    prompt += `Feature this flower: ${content.favoriteFlower}\n`;
+  }
+
+  prompt += `\nGenerate garden content with:\n`;
+  prompt += `- A welcoming message about the garden's meaning\n`;
+  prompt += `- Description connecting flowers to the relationship\n`;
+
+  return prompt;
+}
+
+function getTechFactsRefinementPrompt(content: any, desc: string): string {
+  let prompt = `Create a PLAYFUL, HUMOROUS tech facts page - like a friend teasing their geeky friend.\n\n`;
+  prompt += `TONE: Fun, friendly roasting. Think "go study, nerd!" vibes with emojis and humor.\n\n`;
+  
+  if (content && content.techFactsMessage) {
+    prompt += `User's playful message: ${content.techFactsMessage}\n\n`;
+  }
+
+  // Check if we have fetched facts
+  const hasFacts = content?.techFacts && Array.isArray(content.techFacts) && content.techFacts.length > 0;
+
+  prompt += `Generate content with:\n`;
+  prompt += `{\n`;
+  prompt += `  "title": Something playful like "Go Study, You Geek! 🤓" or "Nerd Alert! 🚨" or "Time to Level Up Your Brain 🧠",\n`;
+  prompt += `  "subtitle": Funny subtitle like "Your daily dose of nerdy knowledge (you're welcome)" or "Because you probably know this already" or "Facts to flex in your next tech debate",\n`;
+  prompt += `  "message": "${content.techFactsMessage || "Go study, nerd! (Just kidding, you probably know all this already) 😄"}",\n`;
+  
+  if (hasFacts) {
+    prompt += `  "techFacts": [\n`;
+    content.techFacts.slice(0, 10).forEach((fact: string, idx: number) => {
+      prompt += `    "${fact}"${idx < Math.min(content.techFacts.length, 10) - 1 ? ',' : ''}\n`;
+    });
+    prompt += `  ]\n`;
+    prompt += `}\n\n`;
+    prompt += `IMPORTANT: Use the techFacts array EXACTLY as provided above. These are already fetched from the API.\n`;
+  } else {
+    prompt += `  "techFacts": [] (will use default facts if not provided)\n`;
+    prompt += `}\n\n`;
+  }
+  
+  prompt += `Keep it FUN, PLAYFUL, and GEEKY with a friendly roasting vibe! Use emojis where appropriate. 🤓🚀💻\n`;
+
+  return prompt;
+}
+
+function getMemoriesRefinementPrompt(content: any, desc: string): string {
+  let prompt = `Create a beautiful memory showcase.\n\n`;
+  
+  if (content && content.favoriteMemories) {
+    prompt += `Memories to showcase:\n${content.favoriteMemories}\n\n`;
+  }
+
+  prompt += `Generate a 'memories' array where each memory has:\n`;
+  prompt += `- title: (short, catchy 2-4 words)\n`;
+  prompt += `- description: (the memory expanded to 1-2 heartfelt sentences)\n`;
+  prompt += `- emoji: (relevant emoji)\n`;
+  prompt += `- date: (season/year if mentioned, e.g., "Summer 2022")\n`;
+  prompt += `\nMake it warm, nostalgic, and beautiful.\n`;
+
+  return prompt;
+}

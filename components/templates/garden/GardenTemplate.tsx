@@ -28,15 +28,12 @@ export function GardenTemplate({ content, theme, colorPalette }: GardenTemplateP
     Array<{ id: number; flower: typeof FLOWERS[0]; x: number; y: number; delay: number }>
   >([]);
   const [selectedFlower, setSelectedFlower] = useState(0);
-  const [isPlanting, setIsPlanting] = useState(false);
   
   // Extract personalized data
   const flowerMeaning = content.flowerMeaning || null;
   const favoriteFlower = content.favoriteFlower || null;
 
   const handlePlantFlower = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isPlanting) return;
-    
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -45,7 +42,7 @@ export function GardenTemplate({ content, theme, colorPalette }: GardenTemplateP
     if (y < 30 || y > 85) return;
 
     const newFlower = {
-      id: Date.now(),
+      id: plantedFlowers.length + Math.floor(Math.random() * 1000),
       flower: FLOWERS[selectedFlower],
       x,
       y,
@@ -59,7 +56,7 @@ export function GardenTemplate({ content, theme, colorPalette }: GardenTemplateP
     <section
       className="min-h-screen py-20 px-4 relative overflow-hidden"
       style={{
-        background: `linear-gradient(180deg, #87CEEB 0%, #98D8C8 50%, #7CB342 100%)`,
+        background: `linear-gradient(180deg, ${colors.background} 0%, ${colors.accent} 50%, ${colors.secondary} 100%)`,
       }}
     >
       {/* Clouds */}
@@ -137,18 +134,9 @@ export function GardenTemplate({ content, theme, colorPalette }: GardenTemplateP
           animate={{ opacity: 1, scale: 1 }}
           className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 mb-6 shadow-xl"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-slate-800">Plant Flowers:</h3>
-            <button
-              onClick={() => setIsPlanting(!isPlanting)}
-              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                isPlanting
-                  ? "bg-green-500 text-white shadow-lg scale-105"
-                  : "bg-slate-200 text-slate-600 hover:bg-slate-300"
-              }`}
-            >
-              {isPlanting ? "🌱 Planting Mode ON" : "Click to Start Planting"}
-            </button>
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-slate-800 mb-1">Select a flower, then click on the garden to plant</h3>
+            <p className="text-sm text-slate-600">Click anywhere in the green area below</p>
           </div>
 
           <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
@@ -185,13 +173,17 @@ export function GardenTemplate({ content, theme, colorPalette }: GardenTemplateP
           )}
         </motion.div>
 
-        {/* Garden Area */}
+        {/* Garden Area - Always clickable */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="relative bg-gradient-to-b from-green-200 to-green-400 rounded-3xl overflow-hidden shadow-2xl"
-          style={{ height: "500px", cursor: isPlanting ? "crosshair" : "default" }}
+          className="relative bg-gradient-to-b from-green-200 to-green-400 rounded-3xl overflow-hidden shadow-2xl border-4 border-dashed"
+          style={{ 
+            height: "500px", 
+            cursor: "crosshair",
+            borderColor: colors.primary + "60",
+          }}
           onClick={handlePlantFlower}
         >
           {/* Grass texture */}
@@ -230,14 +222,15 @@ export function GardenTemplate({ content, theme, colorPalette }: GardenTemplateP
             ))}
           </AnimatePresence>
 
-          {/* Planting Guide */}
-          {isPlanting && plantedFlowers.length === 0 && (
+          {/* Planting Guide - shown when no flowers planted yet */}
+          {plantedFlowers.length === 0 && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="absolute inset-0 flex items-center justify-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5 }}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
             >
-              <div className="bg-white/90 rounded-2xl p-8 text-center">
+              <div className="bg-white/90 rounded-2xl p-8 text-center shadow-xl">
                 <div className="text-6xl mb-4">🌱</div>
                 <p className="text-xl font-bold text-slate-800 mb-2">
                   Click anywhere to plant flowers!

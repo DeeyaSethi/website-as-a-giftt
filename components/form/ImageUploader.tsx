@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import Image from "next/image";
 import { X, Upload, Image as ImageIcon } from "lucide-react";
 import { processImage, validateImageFile, type ProcessedImage } from "@/lib/imageProcessor";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 interface ImageUploaderProps {
   images: ProcessedImage[];
@@ -11,10 +12,10 @@ interface ImageUploaderProps {
   maxImages?: number;
 }
 
-export default function ImageUploader({ 
-  images, 
+export default function ImageUploader({
+  images,
   onImagesChange,
-  maxImages = 10 
+  maxImages = 10
 }: ImageUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -46,9 +47,35 @@ export default function ImageUploader({
           continue;
         }
 
-        // Process image
+        // 1. Generate local preview first (for immediate UI feedback)
         const processed = await processImage(file);
-        processedImages.push(processed);
+
+        // 2. Upload to Cloudinary
+        try {
+          // Check if env vars are set
+          if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || !process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET) {
+            console.warn("Cloudinary credentials missing, falling back to local base64");
+            // Push local version only
+            processedImages.push(processed);
+          } else {
+            const cloudinaryRes = await uploadToCloudinary(file);
+
+            // Replace the 'original' base64 with the Cloudinary URL
+            // Ideally we keep thumbnail as base64 for fast load, but main image as URL
+            processed.original = cloudinaryRes.secure_url;
+            processed.variants.full = cloudinaryRes.secure_url;
+            processed.variants.medium = cloudinaryRes.secure_url; // Use Cloudinary optimizations ideally
+
+            // If we wanted to use Cloudinary transformations for thumbnails:
+            // processed.variants.thumbnail = cloudinaryRes.secure_url.replace('/upload/', '/upload/w_400/');
+
+            processedImages.push(processed);
+          }
+        } catch (uploadErr) {
+          console.error("Cloudinary upload failed", uploadErr);
+          setError("Failed to upload image to cloud. Using local fallback.");
+          processedImages.push(processed); // Fallback
+        }
       }
 
       onImagesChange([...images, ...processedImages]);
@@ -82,7 +109,7 @@ export default function ImageUploader({
 
   const updateCaption = (id: string, caption: string) => {
     onImagesChange(
-      images.map(img => 
+      images.map(img =>
         img.id === id ? { ...img, caption } : img
       )
     );
@@ -98,8 +125,8 @@ export default function ImageUploader({
           onDragLeave={handleDragLeave}
           className={`
             relative border-2 border-dashed rounded-xl p-8 text-center transition-all
-            ${isDragging 
-              ? 'border-purple-500 bg-purple-50' 
+            ${isDragging
+              ? 'border-purple-500 bg-purple-50'
               : 'border-slate-300 hover:border-slate-400'
             }
             ${processing ? 'opacity-50 pointer-events-none' : ''}
@@ -113,7 +140,7 @@ export default function ImageUploader({
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             disabled={processing}
           />
-          
+
           <div className="flex flex-col items-center gap-3">
             {processing ? (
               <>
@@ -163,7 +190,7 @@ export default function ImageUploader({
                     fill
                     className="object-cover"
                   />
-                  
+
                   {/* Remove button */}
                   <button
                     onClick={() => removeImage(image.id)}

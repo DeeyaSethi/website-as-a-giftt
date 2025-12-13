@@ -8,13 +8,11 @@ const AVAILABLE_TEMPLATES = [
   { id: "hero", name: "Welcome Page", description: "Beautiful landing page", required: true },
   { id: "letter", name: "Personal Letter", description: "Heartfelt message" },
   { id: "gallery", name: "Photo Gallery", description: "Share memories through photos" },
-  { id: "timeline", name: "Journey Timeline", description: "Milestones and special moments together" },
   { id: "music", name: "Music Player", description: "Special playlist or favorite songs" },
   { id: "garden", name: "Flower Garden", description: "Interactive flower planting experience" },
   { id: "travel", name: "Travel Map", description: "Places you've visited together" },
-  { id: "recipes", name: "Recipe Book", description: "Favorite dishes and cooking memories" },
-  { id: "quotes", name: "Inspiration Quotes", description: "Motivational words and wisdom" },
-  { id: "memories", name: "Memory Game", description: "Fun matching game with photos or moments" },
+  { id: "memories", name: "Memory Showcase", description: "Beautiful display of favorite memories" },
+  { id: "techfacts", name: "Tech Facts", description: "Playful tech trivia to roast your geeky friend" },
 ];
 
 export async function POST(request: NextRequest) {
@@ -67,13 +65,11 @@ GUIDELINES:
 1. "hero" is always required (already included by default)
 2. "letter" is great for personal, emotional occasions
 3. "gallery" is perfect when photos are mentioned or for visual memories
-4. "timeline" works well for long-term relationships, milestones, anniversaries
-5. "music" is ideal when music, concerts, or songs are mentioned
-6. "garden" fits nature lovers, gardening enthusiasts, or symbolic growth
-7. "travel" is great for adventurers, wanderlust, or when travel is mentioned
-8. "recipes" works for food lovers, cooking together, family recipes
-9. "quotes" suits inspirational occasions, wisdom, or meaningful words
-10. "memories" is fun for interactive experiences and nostalgia
+4. "music" is ideal when music, concerts, or songs are mentioned
+5. "garden" fits nature lovers, gardening enthusiasts, or symbolic growth
+6. "travel" is great for adventurers, wanderlust, or when travel/places are mentioned
+7. "memories" is perfect for showcasing favorite moments and special memories
+8. "techfacts" is ideal for tech enthusiasts, coders, gamers, engineers, geeks, or anyone into technology/computers/coding
 
 Respond with a JSON object:
 {

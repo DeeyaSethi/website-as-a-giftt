@@ -44,6 +44,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Fetch tech facts if requested
+    if (selectedTemplates.includes("techfacts") && templateContent?.techfacts) {
+      const shouldFetchLive = templateContent.techfacts.fetchLiveFacts?.includes("fresh facts from API");
+      
+      if (shouldFetchLive) {
+        try {
+          console.log("📡 Fetching live tech facts from API Ninjas...");
+          const baseUrl = request.url.split('/api/generate')[0];
+          const factsResponse = await fetch(`${baseUrl}/api/tech-facts?count=10`);
+          const factsData = await factsResponse.json();
+          
+          if (factsData.success && factsData.facts && factsData.facts.length > 0) {
+            console.log(`✅ Fetched ${factsData.facts.length} live tech facts`);
+            templateContent.techfacts.techFacts = factsData.facts;
+          } else {
+            console.warn("⚠️ Failed to fetch live facts, will use defaults (empty techFacts array)");
+            // Don't set techFacts - let it be undefined so template uses defaults
+            delete templateContent.techfacts.techFacts;
+          }
+        } catch (error) {
+          console.error("Error fetching tech facts:", error);
+          console.warn("⚠️ Falling back to default tech facts");
+          // Don't set techFacts - let it be undefined so template uses defaults
+          delete templateContent.techfacts.techFacts;
+        }
+      }
+    }
+
     let config;
     let isDemo = false;
 
@@ -156,7 +184,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      site: config,
+      config: config,  // Changed from "site" to "config"
       demo: isDemo,
       message: "Site generated successfully!",
     });
@@ -207,12 +235,6 @@ USER'S CONTENT (${refineWithAI ? 'REFINE AND PERSONALIZE' : 'USE EXACTLY'}):
       prompt += `LETTER PAGE (order: 1):
 - Body: ${content?.body || ""}
 - Signature: ${content?.signature || ""}
-
-`;
-    } else if (templateId === "timeline") {
-      prompt += `TIMELINE PAGE (order: ${index}):
-- User provided: ${content?.keyMoments || ""}
-- Relationship type: ${content?.relationshipType || ""}
 
 `;
     } else if (templateId === "gallery") {
@@ -275,7 +297,7 @@ Return JSON matching this structure:
   },
   "pages": [
     {
-      "type": "hero" | "letter" | "gallery" | "timeline" | "music" | "garden" | etc,
+      "type": "hero" | "letter" | "gallery" | "music" | "garden" | "travel" | "memories" | "techfacts",
       "order": number,
       "content": { ... appropriate fields ... }
     }

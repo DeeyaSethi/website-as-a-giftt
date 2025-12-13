@@ -12,13 +12,10 @@ export type PageType =
   | "hero" 
   | "letter" 
   | "gallery" 
-  | "timeline" 
   | "messages"
   | "garden"
   | "music"
   | "travel"
-  | "recipes"
-  | "quotes"
   | "memories";
 
 /**

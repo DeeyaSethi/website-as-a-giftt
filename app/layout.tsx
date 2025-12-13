@@ -1,17 +1,28 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Cormorant_Garamond, Outfit } from "next/font/google";
 import "./globals.css";
+import Header from "@/components/Header";
 
-const inter = Inter({ 
+const outfit = Outfit({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-outfit",
   display: "swap",
 });
 
-const playfair = Playfair_Display({ 
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  variable: "--font-cormorant",
   display: "swap",
+  weight: ["300", "400", "500", "600", "700"],
+});
+
+import { Great_Vibes } from "next/font/google"; // Import separately to avoid lint issues with grouped import if getting strict
+
+const greatVibes = Great_Vibes({
+  subsets: ["latin"],
+  variable: "--font-great-vibes",
+  display: "swap",
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -25,8 +36,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${playfair.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${outfit.variable} ${cormorant.variable} ${greatVibes.variable} antialiased`}
+        suppressHydrationWarning
+      >
+        <Header />
         {children}
       </body>
     </html>

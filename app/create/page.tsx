@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ArrowLeft, Sparkles, Check, Loader2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, Sparkles, Check, Loader2, ChevronDown, Trash2, Home, Mail, Music, Camera, Flower, Plane, Gamepad2, Cpu } from "lucide-react";
+import { useEffect } from "react";
 import ImageUploader from "@/components/form/ImageUploader";
 import { ProcessedImage } from "@/lib/imageProcessor";
 import { getTemplateQuestions, type TemplateQuestion } from "@/lib/dynamicTemplateQuestions";
@@ -57,21 +58,42 @@ const OCCASION_PROMPTS = [
   },
 ];
 
-// Step 2: Template Selection (keeping emojis for now - will need icons)
+// Step 2: Template Selection
 const AVAILABLE_TEMPLATES = [
   { id: "hero", name: "Welcome Page", icon: "🏠", description: "Beautiful landing page", required: true },
   { id: "letter", name: "Personal Letter", icon: "💌", description: "Heartfelt message" },
   { id: "gallery", name: "Photo Gallery", icon: "📸", description: "Share memories" },
-  { id: "timeline", name: "Journey Timeline", icon: "📅", description: "Milestones together" },
   { id: "music", name: "Music Player", icon: "🎵", description: "Special playlist" },
   { id: "garden", name: "Flower Garden", icon: "🌸", description: "Interactive planting" },
-  { id: "travel", name: "Travel Map", icon: "✈️", description: "Places visited" },
-  { id: "recipes", name: "Recipe Book", icon: "🍳", description: "Favorite dishes" },
-  { id: "quotes", name: "Inspiration Quotes", icon: "💭", description: "Motivational words" },
-  { id: "memories", name: "Memory Game", icon: "🎴", description: "Fun matching game" },
+  { id: "travel", name: "Travel Stories", icon: "✈️", description: "Places and memories" },
+  { id: "memories", name: "Memory Showcase", icon: "🎴", description: "Beautiful memories display" },
+  { id: "techfacts", name: "Tech Facts", icon: "💻", description: "Roast your geeky friend with nerdy trivia" },
 ];
 
 // Step 3: Color Schemes (keeping emojis for now)
+// Template Icons Mapping
+const TEMPLATE_ICONS: Record<string, any> = {
+  hero: Home,
+  letter: Mail,
+  gallery: Camera,
+  music: Music,
+  garden: Flower,
+  travel: Plane,
+  memories: Gamepad2,
+  techfacts: Cpu,
+};
+
+const TEMPLATE_COLORS: Record<string, { from: string; to: string; icon: string }> = {
+  hero: { from: "from-purple-100", to: "to-pink-100", icon: "text-purple-600" },
+  letter: { from: "from-pink-100", to: "to-rose-100", icon: "text-pink-600" },
+  gallery: { from: "from-blue-100", to: "to-cyan-100", icon: "text-blue-600" },
+  music: { from: "from-violet-100", to: "to-purple-100", icon: "text-violet-600" },
+  garden: { from: "from-green-100", to: "to-emerald-100", icon: "text-green-600" },
+  travel: { from: "from-sky-100", to: "to-blue-100", icon: "text-sky-600" },
+  memories: { from: "from-rose-100", to: "to-pink-100", icon: "text-rose-600" },
+  techfacts: { from: "from-cyan-100", to: "to-teal-100", icon: "text-cyan-600" },
+};
+
 const COLOR_SCHEMES = [
   {
     name: "Lavender Dreams",
@@ -154,6 +176,8 @@ export default function CreatePage() {
   const [recommendedTemplates, setRecommendedTemplates] = useState<string[]>([]);
   const [recommendationReasoning, setRecommendationReasoning] = useState("");
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["hero"]));
+  const [skippedSections, setSkippedSections] = useState<Set<string>>(new Set());
 
   // Step 3: Colors
   const [selectedColorScheme, setSelectedColorScheme] = useState(COLOR_SCHEMES[0]);
@@ -163,7 +187,101 @@ export default function CreatePage() {
   const [templateContent, setTemplateContent] = useState<Record<string, any>>({});
   const [refineWithAI, setRefineWithAI] = useState(true);
 
+  // Project State
+  const [isSaving, setIsSaving] = useState(false);
+  const [projectId, setProjectId] = useState<string | null>(null);
+
   const totalSteps = 4;
+
+  // Load existing project if applicable
+  useEffect(() => {
+    // Check URL params
+    const searchParams = new URLSearchParams(window.location.search);
+    const pId = searchParams.get('projectId');
+
+    if (pId) {
+      setProjectId(pId);
+      fetchProject(pId);
+    }
+  }, []);
+
+  const fetchProject = async (id: string) => {
+    try {
+      const res = await fetch(`/api/projects/${id}`);
+      if (res.ok) {
+        const { project } = await res.json();
+        const config = project.config;
+
+        // Restore State
+        if (config.recipientName) setRecipientName(config.recipientName);
+        if (config.occasion) setSelectedOccasion(config.occasion);
+        if (config.originalPrompt) setUserDescription(config.originalPrompt);
+        if (config.selectedTemplates) setSelectedTemplates(config.selectedTemplates);
+        if (config.colorScheme) setSelectedColorScheme(config.colorScheme);
+        if (config.templateContent) setTemplateContent(config.templateContent);
+        if (config.images) setImages(config.images);
+
+        // If we are revisiting, maybe jump to last step or first? Let's stay at 1 unless we add a persistent step tracker
+      }
+    } catch (err) {
+      console.error("Failed to load project", err);
+    }
+  };
+
+  const saveProject = async (silent = false) => {
+    if (!recipientName) {
+      setErrorMessage("Please at least enter a name before saving.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const projectData = {
+        title: `${recipientName}'s ${selectedOccasion || 'Gift'}`,
+        status: 'draft',
+        config: {
+          recipientName,
+          occasion: selectedOccasion,
+          originalPrompt: userDescription,
+          selectedTemplates,
+          templateContent,
+          colorScheme: selectedColorScheme,
+          images, // Cloudinary URLs are already here if uploaded
+        }
+      };
+
+      const url = projectId ? `/api/projects/${projectId}` : '/api/projects';
+      const method = projectId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(projectData)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.project) {
+          setProjectId(data.project._id);
+          // Update URL without reload
+          window.history.replaceState(null, '', `?projectId=${data.project._id}`);
+          if (!silent) alert("Project saved successfully!");
+        }
+      } else {
+        if (res.status === 401) {
+          if (!silent) alert("Please login to save your work.");
+          // Redirect to login? Or open modal? For now just alert.
+        } else {
+          throw new Error("Failed to save");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMessage("Failed to save project.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleNext = async () => {
     if (step < totalSteps) {
@@ -189,7 +307,7 @@ export default function CreatePage() {
       });
 
       const data = await response.json();
-      
+
       if (data.success && data.recommended) {
         setRecommendedTemplates(data.recommended);
         setRecommendationReasoning(data.reasoning || "");
@@ -221,6 +339,124 @@ export default function CreatePage() {
     }
   };
 
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSkipSection = (sectionId: string) => {
+    setSkippedSections((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
+  };
+
+  const removeTemplate = (templateId: string) => {
+    // Remove from selected templates
+    setSelectedTemplates((prev) => prev.filter((id) => id !== templateId));
+    // Clean up any content for this template
+    setTemplateContent((prev) => {
+      const newContent = { ...prev };
+      delete newContent[templateId];
+      return newContent;
+    });
+    // Remove from expanded and skipped sections
+    setExpandedSections((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(templateId);
+      return newSet;
+    });
+    setSkippedSections((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(templateId);
+      return newSet;
+    });
+  };
+
+  // Autofill helpers
+  const getHeroTitleSuggestions = () => {
+    const name = recipientName || "[Name]";
+    const occasion = selectedOccasion.toLowerCase();
+    return [
+      `Happy ${selectedOccasion} ${name}!`,
+      `${name}, You're Amazing!`,
+      `For You, ${name}`,
+      `Celebrating ${name}`,
+      `${name}'s Special Day`,
+    ];
+  };
+
+  const getHeroSubtitleSuggestions = () => {
+    return [
+      "Something special just for you",
+      "Made with love",
+      "You deserve this celebration",
+      "Here's to you!",
+      "A gift from the heart",
+    ];
+  };
+
+  const getHeroMessageSuggestions = () => {
+    const name = recipientName || "you";
+    return [
+      `Welcome to your special website, ${name}! I created this just for you.`,
+      `Hey ${name}! I wanted to make something unique to celebrate you.`,
+      `${name}, you mean so much to me. This website is a small token of my appreciation.`,
+      `I hope this brings a smile to your face, ${name}. You deserve all the happiness!`,
+    ];
+  };
+
+  const getLetterBodySuggestions = () => {
+    const name = recipientName || "[Name]";
+    const occasion = selectedOccasion.toLowerCase();
+
+    if (occasion.includes("birthday")) {
+      return [
+        `Dear ${name},\n\nHappy Birthday! I hope this year brings you endless joy and amazing adventures. You're such an incredible person and I'm so grateful to have you in my life.`,
+        `Hey ${name}!\n\nWishing you the happiest of birthdays! May all your dreams come true this year. Thank you for being such an amazing friend.`,
+      ];
+    } else if (occasion.includes("anniversary")) {
+      return [
+        `My Dearest ${name},\n\nHappy Anniversary! Every moment with you is a treasure. Thank you for all the beautiful memories we've created together.`,
+        `To ${name},\n\nAnother year of love, laughter, and unforgettable moments. Here's to many more years together!`,
+      ];
+    } else if (occasion.includes("friendship")) {
+      return [
+        `Dear ${name},\n\nI wanted to take a moment to tell you how much your friendship means to me. You've been there through thick and thin, and I'm so grateful.`,
+        `Hey ${name}!\n\nJust wanted to remind you how awesome you are! Thanks for being such an amazing friend.`,
+      ];
+    } else {
+      return [
+        `Dear ${name},\n\nI wanted to create something special for you to show how much I care. I hope this brings a smile to your face!`,
+        `Hey ${name}!\n\nYou're such an incredible person, and I wanted to celebrate that. Thank you for being you!`,
+      ];
+    }
+  };
+
+  const getTechFactsMessageSuggestions = () => {
+    const name = recipientName || "you";
+    return [
+      `Go study, ${name}! 🤓 (Just kidding, you already know all this stuff)`,
+      `${name}, stop scrolling and learn something, nerd! 😄`,
+      `For ${name}, the ultimate geek who Googles everything (even on Google)`,
+      `${name}, may your code compile and your coffee be strong! ☕`,
+      `To ${name} - the friend who turns everything into a tech debate 🤖`,
+      `${name}, I bet you'll correct half of these facts... and I'm ready for it! 😂`,
+    ];
+  };
+
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleGenerate = async () => {
@@ -243,11 +479,71 @@ export default function CreatePage() {
         }),
       });
 
+      // Auto-save the draft when generating
+      // We don't await this to block the UI, but we want it to happen
+      saveProject(true).catch(err => console.error("Auto-save failed", err));
+
       const data = await response.json();
 
       if (data.success) {
-        sessionStorage.setItem("generatedSite", JSON.stringify({ site: data.site, demo: data.demo || false }));
-        router.push("/preview");
+        try {
+          // LOG: Check what we received
+          console.log('🎨 Generated Site Data:');
+          console.log('  Theme:', data.config.theme);
+          console.log('  Pages:', data.config.pages?.length);
+          console.log('  Images:', data.config.images?.length);
+
+          // Calculate sizes
+          const originalSize = JSON.stringify(data.config).length;
+          console.log('  Original config size:', (originalSize / 1024).toFixed(2), 'KB');
+
+          // AGGRESSIVE optimization - only use thumbnails to save space
+          const optimizedData = {
+            ...data.config,
+            images: data.config.images?.slice(0, 3).map((img: any) => ({
+              id: img.id,
+              caption: img.caption,
+              variants: {
+                thumbnail: img.variants.thumbnail,
+                medium: img.variants.thumbnail, // Use thumbnail for medium too
+                full: img.variants.thumbnail,    // Use thumbnail for all to save space
+              }
+            }))
+          };
+
+          const optimizedSize = JSON.stringify(optimizedData).length;
+          console.log('  Optimized size:', (optimizedSize / 1024).toFixed(2), 'KB');
+          console.log('  SessionStorage limit: ~5-10 MB');
+          console.log('  Will it fit?', optimizedSize < 5 * 1024 * 1024 ? '✅ YES' : '❌ NO');
+
+          sessionStorage.setItem("generatedSite", JSON.stringify(optimizedData));
+          console.log('✅ Successfully stored in sessionStorage!');
+          router.push("/preview");
+        } catch (storageError: any) {
+          // If STILL too large, store minimal data without images
+          console.error("❌ Storage quota exceeded even with thumbnails:", storageError);
+          console.log("🔄 Trying without images...");
+
+          try {
+            const minimalData = {
+              theme: data.config.theme,
+              colorPalette: data.config.colorPalette,
+              pages: data.config.pages,
+              metadata: data.config.metadata,
+              images: [] // No images
+            };
+
+            const minimalSize = JSON.stringify(minimalData).length;
+            console.log('  Minimal size (no images):', (minimalSize / 1024).toFixed(2), 'KB');
+
+            sessionStorage.setItem("generatedSite", JSON.stringify(minimalData));
+            console.log('✅ Stored without images - preview will work but no photos');
+            router.push("/preview");
+          } catch (finalError) {
+            console.error("❌ Even minimal data too large:", finalError);
+            setErrorMessage("Generated site is too large to preview. Try using fewer images or simpler content.");
+          }
+        }
       } else {
         // Show user-friendly error
         if (data.retryable) {
@@ -343,11 +639,10 @@ export default function CreatePage() {
                       <button
                         key={occ.occasion}
                         onClick={() => setSelectedOccasion(occ.occasion)}
-                        className={`p-4 rounded-xl border-2 transition-all text-left overflow-hidden ${
-                          selectedOccasion === occ.occasion
-                            ? "border-purple-500 bg-purple-50 shadow-md"
-                            : "border-slate-200 hover:border-purple-300"
-                        }`}
+                        className={`p-4 rounded-xl border-2 transition-all text-left overflow-hidden ${selectedOccasion === occ.occasion
+                          ? "border-purple-500 bg-purple-50 shadow-md"
+                          : "border-slate-200 hover:border-purple-300"
+                          }`}
                       >
                         <div className="w-12 h-12 mb-3 rounded-lg overflow-hidden bg-white">
                           <img
@@ -383,20 +678,42 @@ export default function CreatePage() {
                     {/* Sample Prompts */}
                     <div className="mt-4">
                       <p className="text-xs font-semibold text-slate-500 mb-2">
-                        💡 Need inspiration? Try these:
+                        💡 Quick traits (click to add multiple):
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {OCCASION_PROMPTS.find((o) => o.occasion === selectedOccasion)?.samples.map(
-                          (sample, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => setUserDescription(sample)}
-                              className="px-3 py-1.5 text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-full border border-purple-200 transition-colors"
-                            >
-                              {sample}
-                            </button>
-                          )
-                        )}
+                        {[
+                          "🎵 Loves music",
+                          "✈️ Travel enthusiast",
+                          "💻 Tech & coding",
+                          "🍳 Cooking lover",
+                          "📚 Bookworm",
+                          "🎨 Art & design",
+                          "🎮 Gaming fan",
+                          "☕ Coffee addict",
+                          "🏋️ Fitness enthusiast",
+                          "📸 Photography",
+                          "🌱 Nature lover",
+                          "🎬 Movie buff",
+                          "🎤 Singing",
+                          "✍️ Writing",
+                          "🧘 Yoga",
+                          "🐕 Animal lover",
+                        ].map((trait, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => {
+                              const cleanTrait = trait.split(" ").slice(1).join(" ");
+                              setUserDescription(
+                                userDescription
+                                  ? `${userDescription}, ${cleanTrait.toLowerCase()}`
+                                  : cleanTrait.charAt(0).toUpperCase() + cleanTrait.slice(1).toLowerCase()
+                              );
+                            }}
+                            className="px-3 py-1.5 text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-full border border-purple-200 transition-colors hover:scale-105"
+                          >
+                            {trait}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </motion.div>
@@ -459,11 +776,10 @@ export default function CreatePage() {
                             key={template.id}
                             onClick={() => toggleTemplate(template.id)}
                             disabled={isRequired}
-                            className={`p-6 rounded-2xl border-2 text-left transition-all relative overflow-hidden ${
-                              isSelected
-                                ? "border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-xl scale-[1.02]"
-                                : "border-purple-200 bg-white hover:border-purple-400 hover:shadow-lg"
-                            } ${isRequired ? "opacity-75 cursor-not-allowed" : "cursor-pointer"}`}
+                            className={`p-6 rounded-2xl border-2 text-left transition-all relative overflow-hidden ${isSelected
+                              ? "border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-xl scale-[1.02]"
+                              : "border-purple-200 bg-white hover:border-purple-400 hover:shadow-lg"
+                              } ${isRequired ? "opacity-75 cursor-not-allowed" : "cursor-pointer"}`}
                           >
                             {/* Recommended badge */}
                             <div className="absolute top-3 right-3">
@@ -527,11 +843,10 @@ export default function CreatePage() {
                             key={template.id}
                             onClick={() => toggleTemplate(template.id)}
                             disabled={isRequired}
-                            className={`p-6 rounded-2xl border-2 text-left transition-all ${
-                              isSelected
-                                ? "border-purple-500 bg-purple-50 shadow-lg scale-[1.02]"
-                                : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
-                            } ${isRequired ? "opacity-75 cursor-not-allowed" : "cursor-pointer"}`}
+                            className={`p-6 rounded-2xl border-2 text-left transition-all ${isSelected
+                              ? "border-purple-500 bg-purple-50 shadow-lg scale-[1.02]"
+                              : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
+                              } ${isRequired ? "opacity-75 cursor-not-allowed" : "cursor-pointer"}`}
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
@@ -605,11 +920,10 @@ export default function CreatePage() {
                       <button
                         key={scheme.name}
                         onClick={() => setSelectedColorScheme(scheme)}
-                        className={`p-6 rounded-2xl border-2 text-left transition-all ${
-                          isSelected
-                            ? "border-purple-500 shadow-lg scale-[1.02]"
-                            : "border-slate-200 bg-white hover:border-purple-300 hover:shadow-md"
-                        }`}
+                        className={`p-6 rounded-2xl border-2 text-left transition-all ${isSelected
+                          ? "border-purple-500 shadow-lg scale-[1.02]"
+                          : "border-slate-200 bg-white hover:border-purple-300 hover:shadow-md"
+                          }`}
                         style={{
                           background: isSelected
                             ? `linear-gradient(135deg, ${scheme.background} 0%, ${scheme.accent} 100%)`
@@ -672,219 +986,424 @@ export default function CreatePage() {
                 </div>
 
                 {/* Hero Content (Always Required) */}
-                <div className="bg-white rounded-2xl p-6 shadow-lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-2xl">🏠</span>
-                    <h3 className="font-bold text-lg">Welcome Page</h3>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Main Title (short & impactful)
-                      </label>
-                      <input
-                        type="text"
-                        value={templateContent.hero?.title || ""}
-                        onChange={(e) =>
-                          setTemplateContent({
-                            ...templateContent,
-                            hero: { ...templateContent.hero, title: e.target.value },
-                          })
-                        }
-                        placeholder={`Happy ${selectedOccasion} ${recipientName}!`}
-                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none"
-                      />
+                <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow">
+                  <button
+                    onClick={() => toggleSection("hero")}
+                    className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                        <Home className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="font-bold text-lg text-slate-900">Welcome Page</h3>
+                        <p className="text-sm text-slate-500">Required • Main landing page</p>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Subtitle (one line)
-                      </label>
-                      <input
-                        type="text"
-                        value={templateContent.hero?.subtitle || ""}
-                        onChange={(e) =>
-                          setTemplateContent({
-                            ...templateContent,
-                            hero: { ...templateContent.hero, subtitle: e.target.value },
-                          })
-                        }
-                        placeholder="Something special just for you..."
-                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Welcome Message
-                      </label>
-                      <textarea
-                        value={templateContent.hero?.message || ""}
-                        onChange={(e) =>
-                          setTemplateContent({
-                            ...templateContent,
-                            hero: { ...templateContent.hero, message: e.target.value },
-                          })
-                        }
-                        placeholder="A warm welcome message..."
-                        rows={2}
-                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none resize-none"
-                      />
-                    </div>
-                  </div>
+                    <ChevronDown
+                      className={`w-5 h-5 text-slate-400 transition-transform ${expandedSections.has("hero") ? "rotate-180" : ""
+                        }`}
+                    />
+                  </button>
+
+                  {expandedSections.has("hero") && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="px-6 pb-6 space-y-4 border-t border-slate-100"
+                    >
+                      <div className="pt-4 space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Main Title (short & impactful)
+                          </label>
+                          <input
+                            type="text"
+                            value={templateContent.hero?.title || ""}
+                            onChange={(e) =>
+                              setTemplateContent({
+                                ...templateContent,
+                                hero: { ...templateContent.hero, title: e.target.value },
+                              })
+                            }
+                            placeholder={`Happy ${selectedOccasion} ${recipientName}!`}
+                            className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none"
+                          />
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <span className="text-xs text-slate-500 mr-1">Quick fill:</span>
+                            {getHeroTitleSuggestions().slice(0, 3).map((suggestion, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() =>
+                                  setTemplateContent({
+                                    ...templateContent,
+                                    hero: { ...templateContent.hero, title: suggestion },
+                                  })
+                                }
+                                className="text-xs px-3 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-full border border-purple-200 transition-colors"
+                              >
+                                {suggestion.length > 30 ? suggestion.slice(0, 30) + "..." : suggestion}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Subtitle (one line)
+                          </label>
+                          <input
+                            type="text"
+                            value={templateContent.hero?.subtitle || ""}
+                            onChange={(e) =>
+                              setTemplateContent({
+                                ...templateContent,
+                                hero: { ...templateContent.hero, subtitle: e.target.value },
+                              })
+                            }
+                            placeholder="Something special just for you..."
+                            className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none"
+                          />
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <span className="text-xs text-slate-500 mr-1">Quick fill:</span>
+                            {getHeroSubtitleSuggestions().slice(0, 3).map((suggestion, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() =>
+                                  setTemplateContent({
+                                    ...templateContent,
+                                    hero: { ...templateContent.hero, subtitle: suggestion },
+                                  })
+                                }
+                                className="text-xs px-3 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-full border border-purple-200 transition-colors"
+                              >
+                                {suggestion}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Welcome Message
+                          </label>
+                          <textarea
+                            value={templateContent.hero?.message || ""}
+                            onChange={(e) =>
+                              setTemplateContent({
+                                ...templateContent,
+                                hero: { ...templateContent.hero, message: e.target.value },
+                              })
+                            }
+                            placeholder="A warm welcome message..."
+                            rows={2}
+                            className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none resize-none"
+                          />
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <span className="text-xs text-slate-500 mr-1">Quick fill:</span>
+                            {getHeroMessageSuggestions().slice(0, 2).map((suggestion, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() =>
+                                  setTemplateContent({
+                                    ...templateContent,
+                                    hero: { ...templateContent.hero, message: suggestion },
+                                  })
+                                }
+                                className="text-xs px-3 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-full border border-purple-200 transition-colors"
+                              >
+                                Option {idx + 1}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
 
-                 {/* Letter Content */}
-                 {selectedTemplates.includes("letter") && (
-                   <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-pink-300">
-                     <div className="flex items-center gap-2 mb-4">
-                       <span className="text-2xl">💌</span>
-                       <h3 className="font-bold text-lg">Personal Letter</h3>
-                       {recommendedTemplates.includes("letter") && (
-                         <span className="ml-2 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full">
-                           ⭐ AI Pick
-                         </span>
-                       )}
-                     </div>
-                     <div className="space-y-4">
-                       <div>
-                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                           Your Message
-                         </label>
-                         <textarea
-                           value={templateContent.letter?.body || ""}
-                           onChange={(e) =>
-                             setTemplateContent({
-                               ...templateContent,
-                               letter: { ...templateContent.letter, body: e.target.value },
-                             })
-                           }
-                           placeholder="Dear [Name], write your heartfelt message here..."
-                           rows={6}
-                           className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none resize-none"
-                         />
-                       </div>
-                       <div>
-                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                           Sign-off
-                         </label>
-                         <input
-                           type="text"
-                           value={templateContent.letter?.signature || ""}
-                           onChange={(e) =>
-                             setTemplateContent({
-                               ...templateContent,
-                               letter: { ...templateContent.letter, signature: e.target.value },
-                             })
-                           }
-                           placeholder="With love, [Your name]"
-                           className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none"
-                         />
-                       </div>
-                     </div>
-                   </div>
-                 )}
+                {/* Letter Content */}
+                {selectedTemplates.includes("letter") && (
+                  <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow">
+                    <div
+                      onClick={() => toggleSection("letter")}
+                      className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center">
+                          <Mail className="w-6 h-6 text-pink-600" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-bold text-lg text-slate-900">Personal Letter</h3>
+                          <p className="text-sm text-slate-500">
+                            {skippedSections.has("letter") ? "Skipped - Click to enable" : "Heartfelt message"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeTemplate("letter");
+                          }}
+                          className="p-2 hover:bg-red-50 rounded-lg transition-colors group"
+                          title="Remove this section"
+                        >
+                          <Trash2 className="w-4 h-4 text-slate-400 group-hover:text-red-500 transition-colors" />
+                        </button>
+                        <ChevronDown
+                          className={`w-5 h-5 text-slate-400 transition-transform ${expandedSections.has("letter") ? "rotate-180" : ""
+                            }`}
+                        />
+                      </div>
+                    </div>
 
-                 {/* Dynamic Template Questions */}
-                 {selectedTemplates.filter(t => t !== "hero" && t !== "letter" && t !== "gallery" && t !== "memories").map((templateId) => {
-                   const questions = getTemplateQuestions(templateId, userDescription);
-                   const template = AVAILABLE_TEMPLATES.find(t => t.id === templateId);
-                   
-                   if (questions.length === 0) return null;
- 
-                   return (
-                     <div key={templateId} className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-purple-300">
-                       <div className="flex items-center gap-2 mb-4">
-                         <span className="text-2xl">{template?.icon}</span>
-                         <h3 className="font-bold text-lg">{template?.name}</h3>
-                         {recommendedTemplates.includes(templateId) && (
-                           <span className="ml-2 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full">
-                             ⭐ AI Pick
-                           </span>
-                         )}
-                       </div>
-                       <p className="text-sm text-slate-600 mb-4">{template?.description}</p>
-                       
-                       <div className="space-y-4">
-                         {questions.map((question) => (
-                           <div key={question.id}>
-                             <label className="block text-sm font-medium text-slate-700 mb-2">
-                               {question.label}
-                               {question.required && <span className="text-red-500 ml-1">*</span>}
-                             </label>
-                             
-                             {question.type === "textarea" ? (
-                               <textarea
-                                 value={templateContent[templateId]?.[question.id] || ""}
-                                 onChange={(e) =>
-                                   setTemplateContent({
-                                     ...templateContent,
-                                     [templateId]: {
-                                       ...templateContent[templateId],
-                                       [question.id]: e.target.value,
-                                     },
-                                   })
-                                 }
-                                 placeholder={question.placeholder}
-                                 rows={4}
-                                 className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none resize-none"
-                               />
-                             ) : question.type === "select" ? (
-                               <select
-                                 value={templateContent[templateId]?.[question.id] || ""}
-                                 onChange={(e) =>
-                                   setTemplateContent({
-                                     ...templateContent,
-                                     [templateId]: {
-                                       ...templateContent[templateId],
-                                       [question.id]: e.target.value,
-                                     },
-                                   })
-                                 }
-                                 className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none bg-white"
-                               >
-                                 <option value="">Select...</option>
-                                 {question.options?.map((option) => (
-                                   <option key={option} value={option}>
-                                     {option}
-                                   </option>
-                                 ))}
-                               </select>
-                             ) : (
-                               <input
-                                 type="text"
-                                 value={templateContent[templateId]?.[question.id] || ""}
-                                 onChange={(e) =>
-                                   setTemplateContent({
-                                     ...templateContent,
-                                     [templateId]: {
-                                       ...templateContent[templateId],
-                                       [question.id]: e.target.value,
-                                     },
-                                   })
-                                 }
-                                 placeholder={question.placeholder}
-                                 className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none"
-                               />
-                             )}
-                             
-                             {question.helperText && (
-                               <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                                 <Sparkles className="w-3 h-3" />
-                                 {question.helperText}
-                               </p>
-                             )}
-                           </div>
-                         ))}
-                       </div>
-                     </div>
-                   );
-                 })}
+                    {expandedSections.has("letter") && !skippedSections.has("letter") && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="px-6 pb-6 space-y-4 border-t border-slate-100"
+                      >
+                        <div className="pt-4 space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                              Your Message
+                            </label>
+                            <textarea
+                              value={templateContent.letter?.body || ""}
+                              onChange={(e) =>
+                                setTemplateContent({
+                                  ...templateContent,
+                                  letter: { ...templateContent.letter, body: e.target.value },
+                                })
+                              }
+                              placeholder="Dear [Name], write your heartfelt message here..."
+                              rows={6}
+                              className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none resize-none"
+                            />
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              <span className="text-xs text-slate-500 mr-1">Quick templates:</span>
+                              {getLetterBodySuggestions().map((suggestion, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() =>
+                                    setTemplateContent({
+                                      ...templateContent,
+                                      letter: { ...templateContent.letter, body: suggestion },
+                                    })
+                                  }
+                                  className="text-xs px-3 py-1 bg-pink-50 hover:bg-pink-100 text-pink-700 rounded-full border border-pink-200 transition-colors"
+                                >
+                                  Template {idx + 1}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                              Sign-off
+                            </label>
+                            <input
+                              type="text"
+                              value={templateContent.letter?.signature || ""}
+                              onChange={(e) =>
+                                setTemplateContent({
+                                  ...templateContent,
+                                  letter: { ...templateContent.letter, signature: e.target.value },
+                                })
+                              }
+                              placeholder="With love, [Your name]"
+                              className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none"
+                            />
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              <span className="text-xs text-slate-500 mr-1">Quick fill:</span>
+                              {["With love", "Forever yours", "Warmest wishes", "Yours truly", "Always"].map((prefix, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() =>
+                                    setTemplateContent({
+                                      ...templateContent,
+                                      letter: { ...templateContent.letter, signature: prefix },
+                                    })
+                                  }
+                                  className="text-xs px-3 py-1 bg-pink-50 hover:bg-pink-100 text-pink-700 rounded-full border border-pink-200 transition-colors"
+                                >
+                                  {prefix}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                )}
+
+                {/* Dynamic Template Questions */}
+                {selectedTemplates.filter(t => t !== "hero" && t !== "letter" && t !== "gallery").map((templateId) => {
+                  const questions = getTemplateQuestions(templateId, userDescription);
+                  const template = AVAILABLE_TEMPLATES.find(t => t.id === templateId);
+                  const Icon = TEMPLATE_ICONS[templateId] || Sparkles;
+                  const colors = TEMPLATE_COLORS[templateId] || TEMPLATE_COLORS.hero;
+
+                  if (questions.length === 0) return null;
+
+                  return (
+                    <div key={templateId} className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow">
+                      <div
+                        onClick={() => toggleSection(templateId)}
+                        className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors.from} ${colors.to} flex items-center justify-center`}>
+                            <Icon className={`w-6 h-6 ${colors.icon}`} />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-bold text-lg text-slate-900">{template?.name}</h3>
+                            <p className="text-sm text-slate-500">{template?.description}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeTemplate(templateId);
+                            }}
+                            className="p-2 hover:bg-red-50 rounded-lg transition-colors group"
+                            title="Remove this section"
+                          >
+                            <Trash2 className="w-4 h-4 text-slate-400 group-hover:text-red-500 transition-colors" />
+                          </button>
+                          <ChevronDown
+                            className={`w-5 h-5 text-slate-400 transition-transform ${expandedSections.has(templateId) ? "rotate-180" : ""
+                              }`}
+                          />
+                        </div>
+                      </div>
+
+                      {expandedSections.has(templateId) && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="px-6 pb-6 border-t border-slate-100"
+                        >
+                          <div className="pt-5 space-y-4">
+                            {questions.map((question) => (
+                              <div key={question.id}>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                  {question.label}
+                                  {question.required && <span className="text-red-500 ml-1">*</span>}
+                                </label>
+
+                                {question.type === "textarea" ? (
+                                  <textarea
+                                    value={templateContent[templateId]?.[question.id] || ""}
+                                    onChange={(e) =>
+                                      setTemplateContent({
+                                        ...templateContent,
+                                        [templateId]: {
+                                          ...templateContent[templateId],
+                                          [question.id]: e.target.value,
+                                        },
+                                      })
+                                    }
+                                    placeholder={question.placeholder}
+                                    rows={4}
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none resize-none"
+                                  />
+                                ) : question.type === "select" ? (
+                                  <select
+                                    value={templateContent[templateId]?.[question.id] || ""}
+                                    onChange={(e) =>
+                                      setTemplateContent({
+                                        ...templateContent,
+                                        [templateId]: {
+                                          ...templateContent[templateId],
+                                          [question.id]: e.target.value,
+                                        },
+                                      })
+                                    }
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none bg-white"
+                                  >
+                                    <option value="">Select...</option>
+                                    {question.options?.map((option, optIndex) => (
+                                      <option
+                                        key={`${question.id}-opt-${optIndex}`}
+                                        value={option}
+                                        disabled={option === "---"}
+                                      >
+                                        {option}
+                                      </option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <input
+                                    type="text"
+                                    value={templateContent[templateId]?.[question.id] || ""}
+                                    onChange={(e) =>
+                                      setTemplateContent({
+                                        ...templateContent,
+                                        [templateId]: {
+                                          ...templateContent[templateId],
+                                          [question.id]: e.target.value,
+                                        },
+                                      })
+                                    }
+                                    placeholder={question.placeholder}
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none"
+                                  />
+                                )}
+
+                                {question.helperText && (
+                                  <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                                    <Sparkles className="w-3 h-3" />
+                                    {question.helperText}
+                                  </p>
+                                )}
+
+                                {/* Autofill suggestions for techFactsMessage */}
+                                {templateId === "techfacts" && question.id === "techFactsMessage" && (
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {getTechFactsMessageSuggestions().slice(0, 3).map((suggestion, idx) => (
+                                      <button
+                                        key={idx}
+                                        onClick={() =>
+                                          setTemplateContent({
+                                            ...templateContent,
+                                            techfacts: {
+                                              ...templateContent.techfacts,
+                                              techFactsMessage: suggestion
+                                            },
+                                          })
+                                        }
+                                        className="text-xs px-3 py-1 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 rounded-full border border-cyan-200 transition-colors"
+                                      >
+                                        {suggestion.length > 35 ? suggestion.slice(0, 35) + "..." : suggestion}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  );
+                })}
 
                 {/* Photos Upload */}
                 {(selectedTemplates.includes("gallery") || selectedTemplates.includes("memories")) && (
-                  <div className="bg-white rounded-2xl p-6 shadow-lg">
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-2xl">📸</span>
-                      <h3 className="font-bold text-lg">Upload Photos</h3>
+                  <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-6 hover:shadow-lg transition-shadow">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center">
+                        <Camera className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg text-slate-900">Upload Photos</h3>
+                        <p className="text-sm text-slate-500">Add your favorite memories</p>
+                      </div>
                     </div>
                     <ImageUploader images={images} onImagesChange={setImages} />
                   </div>
@@ -987,12 +1506,34 @@ export default function CreatePage() {
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5" />
+                    <Sparkles className="w-5 h-5" />
                     Generate Website
                   </>
                 )}
               </button>
             )}
           </div>
+
+          {/* Save Draft Button (New) */}
+          <div className="mt-8 text-center border-t border-slate-200 pt-6">
+            <button
+              onClick={() => saveProject()}
+              disabled={isSaving}
+              className="text-slate-500 hover:text-purple-600 font-medium text-sm flex items-center justify-center gap-2 mx-auto transition-colors"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  Start over or save for later? <span className="underline">Save Draft</span>
+                </>
+              )}
+            </button>
+          </div>
+
         </div>
       </div>
     </div>

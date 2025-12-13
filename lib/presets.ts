@@ -20,14 +20,7 @@ export interface TemplatePreset {
       body: string;
       signature: string;
     };
-    timeline?: {
-      events: Array<{
-        date: string;
-        title: string;
-        description: string;
-      }>;
-    };
-    extraTemplates?: string[]; // Additional templates: garden, music, travel, recipes, quotes, memories
+    extraTemplates?: string[]; // Additional templates: garden, music, travel, memories
   };
 }
 
@@ -125,13 +118,6 @@ export const templatePresets: TemplatePreset[] = [
       letter: {
         body: "Just like your favorite games, life is full of epic quests and legendary moments. You've conquered another year with skill, determination, and style.\n\nFrom late-night gaming sessions to real-world victories, you make everything look easy. Here's to more high scores, epic wins, and unforgettable adventures ahead.\n\nKeep crushing it, champion!",
         signature: "Your Player 2",
-      },
-      timeline: {
-        events: [
-          { date: "The Beginning", title: "When We Met", description: "The start of an epic friendship" },
-          { date: "Level 5", title: "First Victory", description: "When you achieved something amazing" },
-          { date: "Now", title: "Current Status", description: "Still leveling up every day" },
-        ],
       },
     },
   },
@@ -278,7 +264,7 @@ export const templatePresets: TemplatePreset[] = [
         body: "Your wisdom and guidance have shaped countless lives, including mine. You lead not with authority, but with integrity, patience, and genuine care.\n\nFrom sage advice to powerful lessons, you've shown us what true leadership looks like. Here's to the impact you've made and the legacy you're building.\n\nThank you for everything!",
         signature: "Your Grateful Student",
       },
-      extraTemplates: ["quotes"],
+      extraTemplates: [],
     },
   },
   {

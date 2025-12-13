@@ -7,13 +7,11 @@ import { GeneratedSiteConfig } from "@/lib/types";
 import { HeroTemplate } from "@/components/templates/hero/HeroTemplate";
 import { LetterTemplate } from "@/components/templates/letter/LetterTemplate";
 import { GalleryTemplate } from "@/components/templates/gallery/GalleryTemplate";
-import { TimelineTemplate } from "@/components/templates/timeline/TimelineTemplate";
 import { GardenTemplate } from "@/components/templates/garden/GardenTemplate";
 import { MusicTemplate } from "@/components/templates/music/MusicTemplate";
 import { TravelTemplate } from "@/components/templates/travel/TravelTemplate";
-import { RecipesTemplate } from "@/components/templates/recipes/RecipesTemplate";
-import { QuotesTemplate } from "@/components/templates/quotes/QuotesTemplate";
 import { MemoriesTemplate } from "@/components/templates/memories/MemoriesTemplate";
+import { TechFactsTemplate } from "@/components/templates/techfacts/TechFactsTemplate";
 
 interface TemplateComposerProps {
   site: GeneratedSiteConfig;
@@ -23,26 +21,22 @@ const PAGE_ICONS: Record<string, string> = {
   hero: "🏠",
   letter: "💌",
   gallery: "📸",
-  timeline: "📅",
   garden: "🌸",
   music: "🎵",
   travel: "✈️",
-  recipes: "🍳",
-  quotes: "💭",
   memories: "🎴",
+  techfacts: "💻",
 };
 
 const PAGE_LABELS: Record<string, string> = {
   hero: "Home",
   letter: "Letter",
   gallery: "Gallery",
-  timeline: "Timeline",
   garden: "Garden",
   music: "Music",
   travel: "Travel",
-  recipes: "Recipes",
-  quotes: "Quotes",
   memories: "Memories",
+  techfacts: "Tech Facts",
 };
 
 /**
@@ -62,12 +56,16 @@ export function TemplateComposer({ site }: TemplateComposerProps) {
     setDirection(index > currentPageIndex ? 1 : -1);
     setCurrentPageIndex(index);
     setIsMenuOpen(false);
+    // Scroll to top when changing pages
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const nextPage = () => {
     if (currentPageIndex < totalPages - 1) {
       setDirection(1);
       setCurrentPageIndex(currentPageIndex + 1);
+      // Scroll to top when changing pages
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -75,6 +73,8 @@ export function TemplateComposer({ site }: TemplateComposerProps) {
     if (currentPageIndex > 0) {
       setDirection(-1);
       setCurrentPageIndex(currentPageIndex - 1);
+      // Scroll to top when changing pages
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -116,17 +116,6 @@ export function TemplateComposer({ site }: TemplateComposerProps) {
           />
         );
 
-      case "timeline":
-        return (
-          <TimelineTemplate
-            key={key}
-            content={page.content}
-            theme={site.theme}
-            colorPalette={site.colorPalette}
-            images={site.images}
-          />
-        );
-
       case "garden":
         return (
           <GardenTemplate
@@ -157,26 +146,6 @@ export function TemplateComposer({ site }: TemplateComposerProps) {
           />
         );
 
-      case "recipes":
-        return (
-          <RecipesTemplate
-            key={key}
-            content={page.content}
-            theme={site.theme}
-            colorPalette={site.colorPalette}
-          />
-        );
-
-      case "quotes":
-        return (
-          <QuotesTemplate
-            key={key}
-            content={page.content}
-            theme={site.theme}
-            colorPalette={site.colorPalette}
-          />
-        );
-
       case "memories":
         return (
           <MemoriesTemplate
@@ -185,6 +154,16 @@ export function TemplateComposer({ site }: TemplateComposerProps) {
             theme={site.theme}
             colorPalette={site.colorPalette}
             images={site.images}
+          />
+        );
+
+      case "techfacts":
+        return (
+          <TechFactsTemplate
+            key={key}
+            content={page.content}
+            theme={site.theme}
+            colorPalette={site.colorPalette}
           />
         );
 

@@ -87,17 +87,6 @@ USER PROVIDED CONTENT (USE EXACTLY AS PROVIDED):
 `;
   }
 
-  // Timeline content
-  if (userContent.timeline && userContent.timeline.events) {
-    prompt += `TIMELINE PAGE:
-Include these events EXACTLY as written:
-${userContent.timeline.events.map((e: any, i: number) => 
-  `${i + 1}. Date: "${e.date}", Title: "${e.title}", Description: "${e.description}"`
-).join('\n')}
-
-`;
-  }
-
   // Gallery
   if (userContent.gallery && userContent.images?.length > 0) {
     prompt += `GALLERY PAGE:
@@ -145,7 +134,7 @@ You must respond with a valid JSON object matching this EXACT structure:
   },
   "pages": [
     {
-      "type": "hero" | "letter" | "gallery" | "timeline",
+      "type": "hero" | "letter" | "gallery" | "music" | "garden" | "travel" | "memories",
       "order": number,
       "variant": "string",
       "content": {
@@ -160,7 +149,7 @@ Guidelines:
 2. **FILL METADATA**: Generate appropriate title, description based on recipient name and occasion
 3. **CHOOSE COLORS**: Pick a color palette that matches the occasion/theme
 4. **INCLUDE ONLY PROVIDED PAGES**: If user provided hero + letter, include ONLY those two pages
-5. **CORRECT ORDER**: Always hero (0), then letter (1), gallery (2), timeline (3) as applicable
+5. **CORRECT ORDER**: Always hero (0), then letter (1), gallery (2), and other pages as applicable
 
 Page types and their content structure:
 
@@ -196,25 +185,7 @@ GALLERY PAGE:
     "title": "Gallery title (e.g., 'Our Memories')",
     "subtitle": "Optional subtitle"
   }
-}
-
-TIMELINE PAGE:
-{
-  "type": "timeline",
-  "order": 3,
-  "content": {
-    "title": "One word or 2 words (e.g., 'Journey' or 'Our Story')",
-    "events": [
-      {
-        "date": "Short timeframe (e.g., '2020', 'Spring', 'The Beginning')",
-        "title": "Event name (max 5 words)",
-        "description": "ONE sentence. Be specific and meaningful."
-      }
-    ]
-  }
-}
-Include 3-5 events maximum. Make them personal and meaningful, not generic.
-EXAMPLE: For coffee-lovers → "First Coffee Date", "Our Favorite Café", "That Espresso Mishap"`;
+}`;
 
 /**
  * Validate and sanitize AI-generated config

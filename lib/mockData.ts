@@ -46,36 +46,6 @@ export function generateMockSite(prompt: string): GeneratedSiteConfig {
           subtitle: "A collection of our favorite moments together",
         },
       },
-      {
-        type: "timeline",
-        order: 3,
-        content: {
-          title: "Our Journey",
-          subtitle: "The milestones that brought us here",
-          events: [
-            {
-              date: "The Beginning",
-              title: "When We First Met",
-              description: "It all started with a simple hello. Little did we know how much this moment would change our lives.",
-            },
-            {
-              date: "Year 1",
-              title: "First Adventure Together",
-              description: "Remember that amazing trip we took? The memories we made will last forever.",
-            },
-            {
-              date: "Year 3",
-              title: "Growing Stronger",
-              description: "Through ups and downs, we've always had each other's backs. Our bond has only grown stronger.",
-            },
-            {
-              date: "Today",
-              title: "Celebrating Us",
-              description: "Here we are, still making memories and looking forward to many more adventures together.",
-            },
-          ],
-        },
-      },
     ],
     metadata: {
       title: theme === "birthday" 

@@ -42,22 +42,7 @@ export default function Home() {
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #fff9f0 0%, #f3f0ff 50%, #d4e9ff 100%)' }}>
       {/* Navigation */}
-      <nav className="glass sticky top-0 z-50 border-b border-white/30">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-lg md:text-xl font-display font-bold" style={{ color: '#7c3aed' }}>
-              Website as a Gift
-            </h1>
-            <Link 
-              href="/create"
-              className="px-4 md:px-6 py-2 text-sm font-medium transition-colors hover:opacity-70"
-              style={{ color: '#7c3aed' }}
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </nav>
+      {/* Navigation - Removed as it is now in layout */}
 
       {/* Hero Section */}
       <section className="container mx-auto px-6 py-12 md:py-20">
@@ -73,12 +58,12 @@ export default function Home() {
               <p className="text-lg md:text-xl mb-8 max-w-xl" style={{ color: '#4a5568' }}>
                 AI creates personalized websites for the people you love.
               </p>
-              
+
               <Link href="/create" className="btn-primary inline-block">
                 Create Now
               </Link>
             </div>
-            
+
             <div className="md:col-span-2 relative">
               <div className="relative w-full aspect-square md:transform md:translate-y-8">
                 <Image
@@ -114,24 +99,24 @@ export default function Home() {
                 className="absolute inset-0 transition-all duration-500 ease-in-out"
                 style={{
                   opacity: activeStep === index ? 1 : 0,
-                  transform: activeStep === index 
-                    ? 'translateY(0) scale(1)' 
+                  transform: activeStep === index
+                    ? 'translateY(0) scale(1)'
                     : activeStep === (index - 1 + steps.length) % steps.length
                       ? 'translateY(-30px) scale(0.96)'
                       : 'translateY(30px) scale(0.96)',
                   pointerEvents: activeStep === index ? 'auto' : 'none'
                 }}
               >
-                <div 
+                <div
                   className="card p-10 md:p-16 text-center shadow-2xl"
-                  style={{ 
+                  style={{
                     background: step.gradient,
                     borderColor: step.border,
                     borderWidth: '2px'
                   }}
                 >
                   <div className="flex justify-center mb-8">
-                    <div 
+                    <div
                       className="w-28 h-28 md:w-36 md:h-36 rounded-3xl flex items-center justify-center p-6 md:p-8 shadow-xl"
                       style={{ background: 'white' }}
                     >
@@ -145,7 +130,7 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <h4 className="text-3xl md:text-5xl font-display font-bold mb-4" style={{ color: '#2d3748' }}>
                     {step.title}
                   </h4>
@@ -168,7 +153,7 @@ export default function Home() {
                   width: activeStep === index ? '32px' : '12px',
                   height: '12px',
                   borderRadius: '6px',
-                  background: activeStep === index 
+                  background: activeStep === index
                     ? 'linear-gradient(135deg, #b197fc 0%, #ffa8c5 100%)'
                     : '#e5dbff',
                   cursor: 'pointer'
@@ -185,11 +170,11 @@ export default function Home() {
           <h3 className="text-2xl md:text-4xl font-display font-bold text-center mb-12 md:mb-16" style={{ color: '#2d3748' }}>
             Perfect for any occasion
           </h3>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            <div 
+            <div
               className="card overflow-hidden group cursor-pointer"
-              style={{ 
+              style={{
                 borderColor: '#ffa8c5',
                 background: 'white'
               }}
@@ -209,9 +194,9 @@ export default function Home() {
               </div>
             </div>
 
-            <div 
+            <div
               className="card overflow-hidden group cursor-pointer"
-              style={{ 
+              style={{
                 borderColor: '#b197fc',
                 background: 'white'
               }}
@@ -231,9 +216,9 @@ export default function Home() {
               </div>
             </div>
 
-            <div 
+            <div
               className="card overflow-hidden group cursor-pointer"
-              style={{ 
+              style={{
                 borderColor: '#91c5f5',
                 background: 'white'
               }}
@@ -253,9 +238,9 @@ export default function Home() {
               </div>
             </div>
 
-            <div 
+            <div
               className="card overflow-hidden group cursor-pointer"
-              style={{ 
+              style={{
                 borderColor: '#7dd3c0',
                 background: 'white'
               }}
@@ -280,9 +265,9 @@ export default function Home() {
 
       {/* CTA */}
       <section className="container mx-auto px-6 py-20 md:py-32">
-        <div 
+        <div
           className="max-w-3xl mx-auto text-center rounded-3xl p-12 md:p-16"
-          style={{ 
+          style={{
             background: 'linear-gradient(135deg, #f3f0ff 0%, #d4e9ff 100%)',
             border: '2px solid #e5dbff'
           }}

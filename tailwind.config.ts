@@ -12,6 +12,12 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily: {
+        display: ["var(--font-cormorant)", "serif"],
+        body: ["var(--font-outfit)", "sans-serif"],
+        handwriting: ["var(--font-great-vibes)", "cursive"],
+        sans: ["var(--font-outfit)", "sans-serif"], // Default sans to Outfit
+      },
     },
   },
   plugins: [],

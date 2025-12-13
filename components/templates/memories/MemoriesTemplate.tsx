@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, RotateCcw } from "lucide-react";
 import { Theme } from "@/lib/types";
 import { ProcessedImage } from "@/lib/imageProcessor";
 import { getThemeColors } from "@/lib/utils";
+import { Heart, Sparkles, Star, Calendar } from "lucide-react";
+import { useState } from "react";
 
 interface MemoriesTemplateProps {
   content: Record<string, any>;
@@ -14,17 +14,6 @@ interface MemoriesTemplateProps {
   images?: ProcessedImage[];
 }
 
-const DEFAULT_MEMORIES = [
-  { emoji: "☀️", title: "First Day", text: "When it all began..." },
-  { emoji: "🎉", title: "Celebration", text: "That epic party!" },
-  { emoji: "✈️", title: "Adventure", text: "Our first trip together" },
-  { emoji: "🎂", title: "Birthday", text: "Best birthday ever" },
-  { emoji: "🌟", title: "Achievement", text: "You did it!" },
-  { emoji: "💕", title: "Special Moment", text: "When we knew" },
-  { emoji: "🎨", title: "Creative Day", text: "Making memories" },
-  { emoji: "🎵", title: "Concert", text: "Music and magic" },
-];
-
 export function MemoriesTemplate({
   content,
   theme,
@@ -32,284 +21,255 @@ export function MemoriesTemplate({
   images,
 }: MemoriesTemplateProps) {
   const colors = getThemeColors(theme, colorPalette);
-  const memories = content.memories || DEFAULT_MEMORIES;
-  const [flippedCards, setFlippedCards] = useState<number[]>([]);
-  const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
-  
-  // Extract personalized data
-  const memoryTheme = content.memoryTheme || null;
-  const [moves, setMoves] = useState(0);
-
-  // Create pairs (duplicate each memory)
-  const gamePairs = [...memories.slice(0, 6), ...memories.slice(0, 6)]
-    .sort(() => Math.random() - 0.5)
-    .map((memory, idx) => ({ ...memory, id: idx, originalIndex: memories.indexOf(memory) }));
-
-  const handleCardClick = (index: number) => {
-    if (flippedCards.length === 2 || flippedCards.includes(index) || matchedPairs.includes(index)) {
-      return;
-    }
-
-    const newFlipped = [...flippedCards, index];
-    setFlippedCards(newFlipped);
-    setMoves(moves + 1);
-
-    if (newFlipped.length === 2) {
-      const [first, second] = newFlipped;
-      if (gamePairs[first].originalIndex === gamePairs[second].originalIndex) {
-        // Match!
-        setTimeout(() => {
-          setMatchedPairs([...matchedPairs, first, second]);
-          setFlippedCards([]);
-        }, 500);
-      } else {
-        // No match
-        setTimeout(() => {
-          setFlippedCards([]);
-        }, 1000);
-      }
-    }
-  };
-
-  const resetGame = () => {
-    setFlippedCards([]);
-    setMatchedPairs([]);
-    setMoves(0);
-  };
-
-  const isFlipped = (index: number) =>
-    flippedCards.includes(index) || matchedPairs.includes(index);
+  const memories = content.memories || [];
+  const [selectedMemory, setSelectedMemory] = useState<number | null>(null);
 
   return (
     <section
       className="min-h-screen py-20 px-4 relative overflow-hidden"
       style={{
-        background: `linear-gradient(180deg, ${colors.background} 0%, ${colors.secondary}20 100%)`,
+        background: `radial-gradient(ellipse at top, ${colors.primary}10, transparent 50%),
+                     radial-gradient(ellipse at bottom, ${colors.accent}10, transparent 50%),
+                     linear-gradient(135deg, white 0%, ${colors.background} 100%)`,
       }}
     >
-      {/* Confetti when game is won */}
-      {matchedPairs.length === gamePairs.length && typeof window !== 'undefined' && (
-        <div className="absolute inset-0 pointer-events-none">
-          {[...Array(50)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute text-2xl"
-              initial={{
-                x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
-                y: -50,
-                rotate: 0,
-              }}
-              animate={{
-                y: (typeof window !== 'undefined' ? window.innerHeight : 800) + 100,
-                rotate: 360,
-              }}
-              transition={{
-                duration: 2 + Math.random() * 2,
-                delay: Math.random() * 0.5,
-              }}
-            >
-              {["🎉", "✨", "🎊", "⭐", "💫"][i % 5]}
-            </motion.div>
-          ))}
-        </div>
-      )}
+      {/* Floating sparkles */}
+      {[...Array(30)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute pointer-events-none"
+          style={{
+            left: `${(i * 3.3) % 100}%`,
+            top: `${(i * 7) % 100}%`,
+          }}
+          animate={{
+            y: [-30, 30, -30],
+            opacity: [0.2, 0.5, 0.2],
+            scale: [0.8, 1.2, 0.8],
+          }}
+          transition={{
+            duration: 3 + (i % 3),
+            repeat: Infinity,
+            delay: (i % 4) * 0.5,
+          }}
+        >
+          {i % 3 === 0 ? (
+            <Sparkles className="w-4 h-4" style={{ color: colors.primary }} />
+          ) : i % 3 === 1 ? (
+            <Star className="w-3 h-3" style={{ color: colors.accent }} />
+          ) : (
+            <Heart className="w-3 h-3" style={{ color: colors.secondary }} />
+          )}
+        </motion.div>
+      ))}
 
       <div className="max-w-6xl mx-auto relative z-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="text-center mb-16"
         >
-          <Sparkles className="w-16 h-16 mx-auto mb-4" style={{ color: colors.primary }} />
-          
-          {/* Memory Theme Tag */}
-          {memoryTheme && (
-            <div className="mb-6">
-              <span
-                className="px-5 py-2 rounded-full text-sm font-semibold backdrop-blur-md border-2 inline-block"
-                style={{
-                  backgroundColor: `${colors.primary}20`,
-                  borderColor: colors.primary,
-                  color: colors.primary,
-                }}
-              >
-                🎴 {memoryTheme}
-              </span>
-            </div>
-          )}
-          
-          <h2
-            className="text-5xl md:text-6xl font-display font-bold mb-4"
-            style={{ color: colors.primary }}
-          >
-            {content.title || "Memory Matching Game"}
-          </h2>
-          {content.subtitle && (
-            <p className="text-xl text-slate-600">{content.subtitle}</p>
-          )}
-        </motion.div>
-
-        {/* Game Stats */}
-        <div className="flex items-center justify-center gap-8 mb-8">
-          <div className="text-center bg-white rounded-2xl px-6 py-4 shadow-lg">
-            <div className="text-3xl font-bold" style={{ color: colors.primary }}>
-              {moves}
-            </div>
-            <div className="text-sm text-slate-600">Moves</div>
-          </div>
-
-          <div className="text-center bg-white rounded-2xl px-6 py-4 shadow-lg">
-            <div className="text-3xl font-bold" style={{ color: colors.primary }}>
-              {matchedPairs.length / 2} / {gamePairs.length / 2}
-            </div>
-            <div className="text-sm text-slate-600">Pairs Found</div>
-          </div>
-
-          <button
-            onClick={resetGame}
-            className="flex items-center gap-2 px-6 py-4 rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all hover:scale-105"
-            style={{ color: colors.primary }}
-          >
-            <RotateCcw className="w-5 h-5" />
-            <span className="font-semibold">Reset</span>
-          </button>
-        </div>
-
-        {/* Memory Cards Grid */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="grid grid-cols-3 md:grid-cols-4 gap-4 mb-8"
-        >
-          {gamePairs.map((memory, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.05 }}
-              className="aspect-square"
-              style={{ perspective: "1000px" }}
-            >
-              <motion.div
-                className="relative w-full h-full cursor-pointer"
-                style={{
-                  transformStyle: "preserve-3d",
-                  transform: isFlipped(index) ? "rotateY(180deg)" : "rotateY(0deg)",
-                  transition: "transform 0.6s",
-                }}
-                onClick={() => handleCardClick(index)}
-                whileHover={{ scale: isFlipped(index) ? 1 : 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {/* Back of card */}
-                <div
-                  className="absolute inset-0 rounded-2xl flex items-center justify-center"
-                  style={{
-                    background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
-                    backfaceVisibility: "hidden",
-                    boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-                  }}
-                >
-                  <Sparkles className="w-12 h-12 text-white" />
-                </div>
-
-                {/* Front of card */}
-                <div
-                  className="absolute inset-0 bg-white rounded-2xl p-4 flex flex-col items-center justify-center text-center"
-                  style={{
-                    backfaceVisibility: "hidden",
-                    transform: "rotateY(180deg)",
-                    boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-                    borderTop: `4px solid ${colors.primary}`,
-                  }}
-                >
-                  {images && images[memory.originalIndex] ? (
-                    <img
-                      src={images[memory.originalIndex].variants.thumbnail}
-                      alt={memory.title}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <>
-                      <div className="text-4xl md:text-5xl mb-2">{memory.emoji}</div>
-                      <div className="text-xs md:text-sm font-bold text-slate-800">
-                        {memory.title}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </motion.div>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Win Message */}
-        <AnimatePresence>
-          {matchedPairs.length === gamePairs.length && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="bg-white rounded-3xl p-8 md:p-12 shadow-2xl text-center"
-            >
-              <div className="text-6xl mb-4">🎉</div>
-              <h3 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.primary }}>
-                Congratulations!
-              </h3>
-              <p className="text-xl text-slate-700 mb-6">
-                You found all the memories in {moves} moves!
-              </p>
-              <button
-                onClick={resetGame}
-                className="px-8 py-4 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                style={{ backgroundColor: colors.primary }}
-              >
-                Play Again
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* All Memories List */}
-        {content.showAllMemories && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="mt-12 bg-white/90 backdrop-blur-sm rounded-2xl p-8"
+            animate={{ 
+              scale: [1, 1.1, 1],
+              rotate: [0, 5, -5, 0],
+            }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="inline-block mb-6"
           >
-            <h3 className="text-2xl font-bold mb-6 text-center" style={{ color: colors.primary }}>
-              All Our Memories
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {memories.map((memory: any, idx: number) => (
-                <div
-                  key={idx}
-                  className="text-center p-4 bg-slate-50 rounded-xl hover:shadow-lg transition-shadow"
-                >
-                  <div className="text-4xl mb-2">{memory.emoji}</div>
-                  <div className="font-semibold text-slate-800">{memory.title}</div>
-                  <div className="text-sm text-slate-600">{memory.text}</div>
-                </div>
-              ))}
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center shadow-2xl"
+              style={{
+                background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+              }}
+            >
+              <Sparkles className="w-10 h-10 text-white" />
             </div>
           </motion.div>
-        )}
 
-        {/* Message */}
-        {content.message && (
+          <h2
+            className="text-5xl md:text-7xl font-display font-bold mb-4"
+            style={{
+              background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            {content.title || "Precious Moments"}
+          </h2>
+          {content.subtitle && (
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              {content.subtitle}
+            </p>
+          )}
+        </motion.div>
+
+        {/* Memories Grid - Masonry layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {memories.map((memory: any, index: number) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 50, scale: 0.9 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{
+                delay: index * 0.1,
+                duration: 0.6,
+                type: "spring",
+                stiffness: 100,
+              }}
+              whileHover={{ 
+                y: -10, 
+                scale: 1.05,
+                boxShadow: `0 20px 60px ${colors.primary}30`,
+              }}
+              onClick={() => setSelectedMemory(selectedMemory === index ? null : index)}
+              className="cursor-pointer group relative"
+            >
+              <div
+                className="relative rounded-3xl p-6 md:p-8 shadow-xl border-2 backdrop-blur-md overflow-hidden transition-all duration-300"
+                style={{
+                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  borderColor: selectedMemory === index ? colors.primary : `${colors.primary}20`,
+                  minHeight: "280px",
+                }}
+              >
+                {/* Gradient background */}
+                <div
+                  className="absolute inset-0 opacity-5"
+                  style={{
+                    background: `radial-gradient(circle at 30% 20%, ${colors.primary}, transparent 70%),
+                                 radial-gradient(circle at 70% 80%, ${colors.secondary}, transparent 70%)`,
+                  }}
+                />
+
+                {/* Large emoji */}
+                <motion.div
+                  className="text-6xl md:text-7xl mb-4 filter drop-shadow-lg"
+                  animate={selectedMemory === index ? { 
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 10, -10, 0],
+                  } : {}}
+                  transition={{ duration: 0.5 }}
+                >
+                  {memory.emoji || "✨"}
+                </motion.div>
+
+                {/* Title */}
+                <h3
+                  className="text-2xl md:text-3xl font-display font-bold mb-3"
+                  style={{ color: colors.primary }}
+                >
+                  {memory.title}
+                </h3>
+
+                {/* Date badge */}
+                {memory.date && (
+                  <div className="flex items-center gap-2 mb-4">
+                    <Calendar className="w-4 h-4" style={{ color: colors.accent }} />
+                    <span
+                      className="text-sm font-semibold"
+                      style={{ color: colors.accent }}
+                    >
+                      {memory.date}
+                    </span>
+                  </div>
+                )}
+
+                {/* Description */}
+                <motion.p
+                  className="text-base text-slate-700 leading-relaxed relative z-10"
+                  initial={false}
+                  animate={{ 
+                    opacity: selectedMemory === index ? 1 : 0.7,
+                  }}
+                >
+                  {memory.description}
+                </motion.p>
+
+                {/* Hover glow effect */}
+                <motion.div
+                  className="absolute -inset-4 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-2xl"
+                  style={{
+                    background: `linear-gradient(135deg, ${colors.primary}20, ${colors.secondary}20)`,
+                  }}
+                />
+
+                {/* Selected indicator */}
+                <AnimatePresence>
+                  {selectedMemory === index && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      className="absolute top-4 right-4"
+                    >
+                      <Heart
+                        className="w-8 h-8"
+                        style={{ color: colors.accent, fill: colors.accent }}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Decorative corner elements */}
+                <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 rounded-tl-3xl opacity-20" style={{ borderColor: colors.primary }} />
+                <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 rounded-br-3xl opacity-20" style={{ borderColor: colors.secondary }} />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Empty state */}
+        {memories.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-8 text-center bg-white/80 backdrop-blur-sm rounded-2xl p-8"
+            className="text-center py-20"
           >
-            <p className="text-lg text-slate-700 leading-relaxed">{content.message}</p>
+            <Sparkles className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: colors.primary }} />
+            <p className="text-xl text-slate-500">
+              No memories to display yet. Share some special moments!
+            </p>
           </motion.div>
         )}
+
+        {/* Footer message */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-20 text-center"
+        >
+          <div
+            className="inline-flex items-center gap-3 px-8 py-4 rounded-full backdrop-blur-md"
+            style={{
+              backgroundColor: `${colors.primary}10`,
+              border: `2px solid ${colors.primary}30`,
+            }}
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            >
+              <Sparkles className="w-5 h-5" style={{ color: colors.primary }} />
+            </motion.div>
+            <p
+              className="text-lg font-semibold"
+              style={{ color: colors.primary }}
+            >
+              Every moment with you is a memory I treasure
+            </p>
+            <motion.div
+              animate={{ rotate: -360 }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            >
+              <Heart className="w-5 h-5" style={{ color: colors.accent }} />
+            </motion.div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
 }
-

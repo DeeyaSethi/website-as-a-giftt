@@ -4,10 +4,19 @@ import { motion } from "framer-motion";
 import { Theme } from "@/lib/types";
 import { ProcessedImage } from "@/lib/imageProcessor";
 import { getThemeColors } from "@/lib/utils";
-import { Heart, Sparkles, Star, ChevronDown } from "lucide-react";
+import { useRef } from "react";
+import { OccasionEffects } from "@/components/animations/OccasionEffects";
+import { TiltCard } from "@/components/ui/TiltCard";
+import { ArrowDown, Music, Calendar, Heart, Star, Sparkles, Gift } from "lucide-react";
 
 interface HeroTemplateProps {
-  content: Record<string, any>;
+  content: {
+    title?: string;
+    subtitle?: string;
+    message?: string;
+    occasion?: string;
+    cardStyle?: string;
+  };
   theme: Theme;
   colorPalette?: any;
   images?: ProcessedImage[];
@@ -18,365 +27,151 @@ interface HeroTemplateProps {
 export function HeroTemplate({ content, theme, colorPalette, images, availablePages, onNavigate }: HeroTemplateProps) {
   const colors = getThemeColors(theme, colorPalette);
   const backgroundImage = images?.[0];
+  const sectionRef = useRef(null);
 
-  // Floating particles for elegance
-  const particles = Array.from({ length: 20 }, (_, i) => ({
-    id: i,
-    size: Math.random() * 4 + 2,
-    duration: Math.random() * 3 + 2,
-    delay: Math.random() * 2,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-  }));
+  // REMOVED: Scroll animations that caused fading
+  // const { scrollYProgress } = useScroll(...)
+  // const opacity = useTransform(...)
 
   return (
     <section
-      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
+      ref={sectionRef}
+      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 py-20 md:px-8"
       style={{
-        background: backgroundImage
-          ? `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.6)), url(${backgroundImage.variants.full}) center/cover fixed`
-          : `linear-gradient(135deg, ${colors.background} 0%, ${colors.accent}40 50%, ${colors.background} 100%)`,
+        // Warmer gradient
+        background: `radial-gradient(circle at 50% 50%, #ffffff 0%, ${colors.background}40 100%)`,
       }}
     >
-      {/* Elegant animated background */}
-      {!backgroundImage && (
-        <>
-          {/* Large gradient orbs */}
-          <motion.div
-            className="absolute w-[600px] h-[600px] rounded-full blur-[120px] opacity-20"
-            style={{ backgroundColor: colors.primary }}
-            animate={{
-              scale: [1, 1.3, 1],
-              rotate: [0, 180, 0],
-            }}
-            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-            initial={{ top: "-10%", left: "-10%" }}
-          />
-          <motion.div
-            className="absolute w-[500px] h-[500px] rounded-full blur-[100px] opacity-20"
-            style={{ backgroundColor: colors.secondary }}
-            animate={{
-              scale: [1.2, 1, 1.2],
-              rotate: [0, -180, 0],
-            }}
-            transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-            initial={{ bottom: "-5%", right: "-5%" }}
-          />
-          <motion.div
-            className="absolute w-[400px] h-[400px] rounded-full blur-[80px] opacity-15"
-            style={{ backgroundColor: colors.accent }}
-            animate={{
-              scale: [1, 1.4, 1],
-              x: [-50, 50, -50],
-            }}
-            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-            initial={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
-          />
+      {/* Noise Texture Overlay - Slightly decreased opacity for warmth */}
+      <div className="absolute inset-0 opacity-[0.02] pointer-events-none z-0 mix-blend-multiply" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+      }} />
 
-          {/* Floating particles */}
-          {particles.map((particle) => (
-            <motion.div
-              key={particle.id}
-              className="absolute rounded-full"
-              style={{
-                width: particle.size,
-                height: particle.size,
-                backgroundColor: colors.primary,
-                left: `${particle.x}%`,
-                top: `${particle.y}%`,
-                opacity: 0.3,
-              }}
-              animate={{
-                y: [-20, -80, -20],
-                opacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{
-                duration: particle.duration,
-                repeat: Infinity,
-                delay: particle.delay,
-                ease: "easeInOut",
-              }}
-            />
-          ))}
-        </>
-      )}
-
-      {/* Decorative corner elements */}
-      <div className="absolute top-0 left-0 w-32 h-32 opacity-10">
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <circle cx="0" cy="0" r="100" fill={backgroundImage ? "white" : colors.primary} />
-        </svg>
-      </div>
-      <div className="absolute bottom-0 right-0 w-32 h-32 opacity-10">
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <circle cx="100" cy="100" r="100" fill={backgroundImage ? "white" : colors.primary} />
-        </svg>
+      {/* Occasion Animation Layer - Increased visibility */}
+      <div className="absolute inset-0 z-0 opacity-80">
+        <OccasionEffects occasion={content.occasion} colors={colors} />
       </div>
 
-      {/* Main content container */}
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 py-12">
-        <div className="text-center">
-          {/* Decorative line above title */}
-          <motion.div
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="flex items-center justify-center mb-8"
-          >
-            <div
-              className="h-[2px] w-16"
-              style={{
-                background: `linear-gradient(90deg, transparent, ${
-                  backgroundImage ? "white" : colors.primary
-                }, transparent)`,
-              }}
-            />
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              className="mx-4"
-            >
-              <Sparkles
-                className="w-6 h-6"
-                style={{ color: backgroundImage ? "white" : colors.primary }}
-              />
-            </motion.div>
-            <div
-              className="h-[2px] w-16"
-              style={{
-                background: `linear-gradient(90deg, transparent, ${
-                  backgroundImage ? "white" : colors.primary
-                }, transparent)`,
-              }}
-            />
-          </motion.div>
+      {/* Main Content - CLEAN & WARM LAYOUT */}
+      <div className="relative z-10 w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-16 lg:gap-28">
 
-          {/* Main title - huge and elegant */}
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="font-display font-bold mb-6 leading-[0.9]"
-            style={{
-              fontSize: "clamp(3rem, 12vw, 10rem)",
-              color: backgroundImage ? "white" : colors.textDark,
-              textShadow: backgroundImage
-                ? "0 4px 20px rgba(0,0,0,0.3)"
-                : `0 2px 40px ${colors.primary}40`,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            {content.title || "For You"}
-          </motion.h1>
+        {/* Left Side: Photo (Straight & Elegant) */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="relative lg:w-1/2 max-w-lg"
+        >
+          <TiltCard intensity={5} className="relative z-10">
+            <div className="bg-white p-4 pb-16 rounded-sm shadow-2xl">
+              <div className="aspect-[4/5] w-full overflow-hidden bg-slate-100 relative">
+                {backgroundImage ? (
+                  <img
+                    src={backgroundImage.variants.full}
+                    alt="Hero"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-300">
+                    <Heart className="w-12 h-12 opacity-50" />
+                  </div>
+                )}
+                <div className="absolute inset-0 ring-1 ring-black/5" />
+              </div>
+            </div>
 
-          {/* Subtitle with elegant styling */}
-          {content.subtitle && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-              className="text-xl md:text-3xl font-light tracking-wide mb-8"
-              style={{
-                color: backgroundImage
-                  ? "rgba(255,255,255,0.9)"
-                  : colors.textMedium,
-                fontFamily: "var(--font-display)",
-              }}
-            >
-              {content.subtitle}
-            </motion.p>
-          )}
+            {/* Handwritten Caption on Bottom */}
+            <div className="absolute bottom-4 left-0 right-0 text-center z-20">
+              <p className="font-handwriting text-3xl text-slate-600">
+                To my favorite person
+              </p>
+            </div>
+          </TiltCard>
+        </motion.div>
 
-          {/* Message in elegant card */}
-          {content.message && (
-            <motion.div
+        {/* Right Side: Message & Widgets */}
+        <div className="lg:w-1/2 space-y-12 text-center lg:text-left pt-8 lg:pt-0">
+
+          {/* Title Group */}
+          <div className="space-y-8">
+            {content.occasion && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="font-handwriting text-4xl md:text-5xl lg:text-6xl leading-tight"
+                style={{ color: colors.primary }}
+              >
+                <span>{content.occasion},</span>
+              </motion.div>
+            )}
+
+            <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1 }}
-              className="max-w-2xl mx-auto mb-12"
+              transition={{ delay: 0.2 }}
+              className="font-display text-6xl md:text-7xl lg:text-8xl leading-none text-slate-800"
             >
-              <div
-                className="backdrop-blur-xl rounded-3xl p-8 border shadow-2xl"
-                style={{
-                  backgroundColor: backgroundImage
-                    ? "rgba(255,255,255,0.1)"
-                    : "rgba(255,255,255,0.8)",
-                  borderColor: backgroundImage
-                    ? "rgba(255,255,255,0.2)"
-                    : `${colors.primary}40`,
-                }}
+              {content.title || "For You"}
+            </motion.h1>
+
+            {content.subtitle && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-xl text-slate-500 font-light max-w-md mx-auto lg:mx-0 leading-relaxed"
               >
-                <p
-                  className="text-lg md:text-xl leading-relaxed"
-                  style={{
-                    color: backgroundImage ? "white" : colors.textDark,
-                  }}
-                >
-                  {content.message}
-                </p>
-              </div>
+                {content.subtitle}
+              </motion.p>
+            )}
+          </div>
+
+          {/* Message Card (Sticky Note Style) */}
+          {content.message && (
+            <motion.div
+              initial={{ opacity: 0, rotate: 1 }}
+              animate={{ opacity: 1, rotate: 1 }}
+              transition={{ delay: 0.5 }}
+              className="relative bg-[#fffdf0] p-8 shadow-lg max-w-md mx-auto lg:mx-0 transform rotate-1 border border-yellow-100/50"
+            >
+              <p className="font-handwriting text-2xl md:text-3xl leading-relaxed text-slate-700">
+                {content.message}
+              </p>
             </motion.div>
           )}
 
-          {/* Explore More - Elegant cards */}
+          {/* Navigation "Pill" Buttons */}
           {availablePages && availablePages.length > 1 && onNavigate && (
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.3 }}
-              className="mt-16"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="flex flex-wrap gap-4 justify-center lg:justify-start"
             >
-              <p
-                className="text-sm tracking-[0.3em] uppercase font-semibold mb-6"
-                style={{
-                  color: backgroundImage
-                    ? "rgba(255,255,255,0.7)"
-                    : colors.textMedium,
-                }}
-              >
-                Explore
-              </p>
-
-              <div className="flex flex-wrap justify-center gap-4 max-w-3xl mx-auto">
-                {availablePages.slice(1, 5).map((pageType, idx) => {
-                  const pageInfo: Record<
-                    string,
-                    { label: string; icon: any; description: string }
-                  > = {
-                    letter: {
-                      label: "Letter",
-                      icon: Heart,
-                      description: "A note for you",
-                    },
-                    gallery: {
-                      label: "Gallery",
-                      icon: Sparkles,
-                      description: "Our moments",
-                    },
-                    timeline: {
-                      label: "Timeline",
-                      icon: Star,
-                      description: "Our journey",
-                    },
-                    music: {
-                      label: "Music",
-                      icon: Sparkles,
-                      description: "Your playlist",
-                    },
-                    garden: {
-                      label: "Garden",
-                      icon: Sparkles,
-                      description: "Plant flowers",
-                    },
-                    travel: {
-                      label: "Travel",
-                      icon: Star,
-                      description: "Adventures",
-                    },
-                    recipes: {
-                      label: "Recipes",
-                      icon: Heart,
-                      description: "Our dishes",
-                    },
-                    quotes: {
-                      label: "Quotes",
-                      icon: Sparkles,
-                      description: "Inspiration",
-                    },
-                    memories: {
-                      label: "Memories",
-                      icon: Heart,
-                      description: "Play & match",
-                    },
-                  };
-
-                  const info =
-                    pageInfo[pageType] ||
-                    ({
-                      label: pageType,
-                      icon: Sparkles,
-                      description: "Discover",
-                    } as any);
-                  const IconComponent = info.icon;
-
-                  return (
-                    <motion.button
-                      key={pageType}
-                      onClick={() => onNavigate(idx + 1)}
-                      whileHover={{ scale: 1.05, y: -5 }}
-                      whileTap={{ scale: 0.95 }}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 1.5 + idx * 0.1 }}
-                      className="group relative overflow-hidden rounded-2xl backdrop-blur-xl border-2 p-6 min-w-[140px] transition-all shadow-lg hover:shadow-2xl"
-                      style={{
-                        backgroundColor: backgroundImage
-                          ? "rgba(255,255,255,0.1)"
-                          : "rgba(255,255,255,0.9)",
-                        borderColor: backgroundImage
-                          ? "rgba(255,255,255,0.2)"
-                          : `${colors.primary}30`,
-                      }}
-                    >
-                      {/* Hover gradient effect */}
-                      <div
-                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        style={{
-                          background: `linear-gradient(135deg, ${colors.primary}10, ${colors.secondary}10)`,
-                        }}
-                      />
-
-                      <div className="relative z-10 flex flex-col items-center">
-                        <IconComponent
-                          className="w-8 h-8 mb-3 transition-transform group-hover:scale-110"
-                          style={{
-                            color: backgroundImage ? "white" : colors.primary,
-                          }}
-                        />
-                        <div
-                          className="font-semibold text-sm mb-1"
-                          style={{
-                            color: backgroundImage ? "white" : colors.textDark,
-                          }}
-                        >
-                          {info.label}
-                        </div>
-                        <div
-                          className="text-xs opacity-70"
-                          style={{
-                            color: backgroundImage ? "white" : colors.textMedium,
-                          }}
-                        >
-                          {info.description}
-                        </div>
-                      </div>
-                    </motion.button>
-                  );
-                })}
-              </div>
+              {availablePages.slice(1, 4).map((pageType: string, idx: number) => {
+                const pageLabels: Record<string, string> = {
+                  letter: "Read Letter", gallery: "Photos", music: "Playlist",
+                  garden: "Garden", travel: "Adventures", memories: "Memories",
+                };
+                return (
+                  <button
+                    key={pageType}
+                    onClick={() => onNavigate(idx + 1)}
+                    className="group flex items-center gap-2 px-8 py-4 rounded-full bg-white shadow-sm border border-slate-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    <span className="font-body text-sm uppercase tracking-widest font-medium text-slate-500 group-hover:text-slate-800">
+                      {pageLabels[pageType] || pageType}
+                    </span>
+                  </button>
+                );
+              })}
             </motion.div>
           )}
+
         </div>
+
       </div>
 
-      {/* Scroll indicator - minimal and elegant */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 1 }}
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-      >
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          className="flex flex-col items-center"
-        >
-          <ChevronDown
-            className="w-6 h-6 opacity-40"
-            style={{ color: backgroundImage ? "white" : colors.textMedium }}
-          />
-        </motion.div>
-      </motion.div>
     </section>
   );
 }

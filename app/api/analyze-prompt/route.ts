@@ -34,13 +34,10 @@ Available templates:
 - hero: Opening page (always include)
 - letter: Personal letter/message
 - gallery: Photo gallery
-- timeline: Timeline of events/milestones
 - music: Music playlist (for music lovers)
 - garden: Flower garden (for flower/gardening lovers)
 - travel: Travel map (for travelers/adventure lovers)
-- recipes: Recipe collection (for food/cooking lovers)
-- quotes: Inspiring quotes collection
-- memories: Memory cards/moments
+- memories: Memory showcase (for favorite moments)
 
 Return JSON with:
 {
@@ -53,7 +50,7 @@ Guidelines:
 2. Look for interests mentioned (flowers → garden, music → music, travel → travel, etc.)
 3. Include "letter" if it's a personal occasion
 4. Include "gallery" if they mention "memories" or "photos"
-5. Include "timeline" for anniversaries, long friendships, relationships
+5. Include "memories" for showcasing special moments and memories
 6. Be smart about matching interests to templates`;
 
     const result = await model.generateContent(analysisPrompt);
