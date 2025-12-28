@@ -13,12 +13,15 @@ interface EditContentModalProps {
 }
 
 export function EditContentModal({ isOpen, onClose, siteData, onSave }: EditContentModalProps) {
+    // Find the hero page from the pages array
+    const heroPage = siteData.pages?.find(page => page.type === "hero");
+    
     // Local state for form fields
     const [formData, setFormData] = useState({
         projectTitle: siteData.metadata?.title || "",
-        recipientName: siteData.recipientName || "",
-        heroTitle: siteData.content?.hero?.title || "",
-        heroSubtitle: siteData.content?.hero?.subtitle || "",
+        recipientName: siteData.metadata?.recipientName || "",
+        heroTitle: heroPage?.content?.title || "",
+        heroSubtitle: heroPage?.content?.subtitle || "",
         // We can add more fields here as needed (sections, etc.)
     });
 
@@ -30,22 +33,33 @@ export function EditContentModal({ isOpen, onClose, siteData, onSave }: EditCont
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Update metadata
+        const updatedMetadata = {
+            ...siteData.metadata,
+            title: formData.projectTitle,
+            recipientName: formData.recipientName
+        };
+
+        // Update pages array - find and update the hero page
+        const updatedPages = siteData.pages.map(page => {
+            if (page.type === "hero") {
+                return {
+                    ...page,
+                    content: {
+                        ...page.content,
+                        title: formData.heroTitle,
+                        subtitle: formData.heroSubtitle
+                    }
+                };
+            }
+            return page;
+        });
+
         // Deep merge updates into siteData structure
         const updatedSiteData: GeneratedSiteConfig = {
             ...siteData,
-            metadata: {
-                ...siteData.metadata,
-                title: formData.projectTitle
-            },
-            recipientName: formData.recipientName,
-            content: {
-                ...siteData.content,
-                hero: {
-                    ...siteData.content.hero,
-                    title: formData.heroTitle,
-                    subtitle: formData.heroSubtitle
-                }
-            }
+            metadata: updatedMetadata,
+            pages: updatedPages
         };
 
         onSave(updatedSiteData);

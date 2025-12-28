@@ -42,7 +42,7 @@ export interface GeneratedSiteConfig {
   pages: PageConfig[];
   metadata: SiteMetadata;
   colorPalette: ColorPalette;
-  images?: import("./imageProcessor").ProcessedImage[]; // User-uploaded images
+  images?: import("@/client/lib/imageProcessor").ProcessedImage[]; // User-uploaded images
 }
 
 /**

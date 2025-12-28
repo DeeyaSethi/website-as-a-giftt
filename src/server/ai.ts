@@ -4,7 +4,7 @@ import type {
   GeneratedSiteConfig,
   AIGenerationResponse,
   PageType,
-} from "./types";
+} from "@/shared/types";
 
 /**
  * Initialize Gemini client
